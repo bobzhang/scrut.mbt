@@ -12,7 +12,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install MoonBit (Unix)
         if: runner.os != 'Windows'
@@ -31,6 +31,9 @@ jobs:
       - name: C compiler (Windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Fetch the package registry
+        run: moon update
 
       - name: Check
         run: moon check --target native --deny-warn

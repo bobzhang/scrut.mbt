@@ -1,6 +1,7 @@
 mod rng;
 mod text;
 mod rules;
+mod diff;
 
 use unicode_categories::UnicodeCategories;
 
@@ -36,6 +37,7 @@ fn main() {
         Some("tables") => tables(),
         Some("text") => text::main(),
         Some("rules") => rules::main(),
+        Some("diff") => diff::main(),
         other => panic!("unknown mode {other:?}"),
     }
 }

@@ -1,0 +1,5 @@
+import {
+  "bobzhang/scrut" @lib,
+}
+
+pkgtype(kind: "executable")

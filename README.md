@@ -15,8 +15,11 @@ into a program and its arguments, and the program is executed directly. There
 are no pipes, redirections, variable expansion, globbing or shell state
 carried between test cases.
 
-This makes tests deterministic and portable (no bash dependency, identical on
-every platform), and fits `moon cram`'s purpose of testing a project's own
+This makes tests deterministic and portable: there is no dependency on bash
+or any other shell, and the same documents run on Linux, macOS and
+**Windows**. Processes are spawned with `moonbitlang/async/process`, which
+uses `posix_spawn` on Unix and `CreateProcessW` (with correct argument
+quoting) on Windows. It fits `moon cram`'s purpose of testing a project's own
 executables.
 
 Upstream is checked out in `.repos/scrut` (git-ignored) for reference and as

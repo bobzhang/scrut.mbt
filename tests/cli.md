@@ -1,25 +1,26 @@
 # The scrut command line
 
-These tests run the scrut binary named by `SCRUT_BIN` on the documents in
-`fixtures/` (see `scripts/selftest.sh`).
+These tests run `scrut.exe` on the documents in `fixtures/`, with the
+built `scrut.exe` and `scrut-testbin.exe` (a portable stand-in for shell
+tools) on `PATH` (see `scripts/selftest.sh`).
 
 ## Passing documents
 
 ```scrut
-$ "$SCRUT_BIN" test "$TESTDIR/fixtures/pass.md" "$TESTDIR/fixtures/cram.t" "$TESTDIR/fixtures/variables.md"
-Result: 3 document(s) with 5 testcase(s): 5 succeeded, 0 failed and 0 skipped
+$ scrut.exe test "$TESTDIR/fixtures/pass.md" "$TESTDIR/fixtures/cram.t" "$TESTDIR/fixtures/variables.md"
+Result: 3 document(s) with 6 testcase(s): 6 succeeded, 0 failed and 0 skipped
 ```
 
 ## Failures are reported with a diff, exit code 50
 
 ```scrut
-$ "$SCRUT_BIN" test "$TESTDIR/fixtures/fail.md"
+$ scrut.exe test "$TESTDIR/fixtures/fail.md"
 // =============================================================================
 // @ */tests/fixtures/fail.md:4 (glob)
 // -----------------------------------------------------------------------------
 // # Failing tests
 // -----------------------------------------------------------------------------
-// $ /bin/echo world
+// $ scrut-testbin.exe echo world
 // =============================================================================
 
 1     | - hello
@@ -29,7 +30,7 @@ $ "$SCRUT_BIN" test "$TESTDIR/fixtures/fail.md"
 // =============================================================================
 // @ */tests/fixtures/fail.md:9 (glob)
 // -----------------------------------------------------------------------------
-// $ /bin/sh -c 'exit 3'
+// $ scrut-testbin.exe exit 3
 // =============================================================================
 
 unexpected exit code
@@ -49,14 +50,14 @@ Result: 1 document(s) with 2 testcase(s): 0 succeeded, 2 failed and 0 skipped
 See `fixtures/grammar.md` for the messages.
 
 ```scrut
-$ "$SCRUT_BIN" test "$TESTDIR/fixtures/grammar.md"
+$ scrut.exe test "$TESTDIR/fixtures/grammar.md"
 Result: 1 document(s) with 4 testcase(s): 4 succeeded, 0 failed and 0 skipped
 ```
 
 ## Missing documents are an error
 
 ```scrut {output_stream: stderr}
-$ "$SCRUT_BIN" test does-not-exist.md
+$ scrut.exe test does-not-exist.md
 Error: read contents from test document path(s)
 
 Caused by:
@@ -67,7 +68,7 @@ Caused by:
 ## Machine readable reports
 
 ```scrut
-$ "$SCRUT_BIN" test --renderer diff "$TESTDIR/fixtures/fail.md"
+$ scrut.exe test --renderer diff "$TESTDIR/fixtures/fail.md"
 --- */tests/fixtures/fail.md (glob)
 +++ */tests/fixtures/fail.md.new (glob)
 @@ -5 +5 @@ malformed output: Failing tests
@@ -81,18 +82,18 @@ $ "$SCRUT_BIN" test --renderer diff "$TESTDIR/fixtures/fail.md"
 ## Creating a test from a command
 
 ````scrut
-$ "$SCRUT_BIN" create --title "Say hello" -- /bin/echo hello
+$ scrut.exe create --title "Say hello" -- scrut-testbin.exe echo hello
 # Say hello
 
 ```scrut
-$ /bin/echo hello
+$ scrut-testbin.exe echo hello
 hello
 ```
 ````
 
 ```scrut
-$ "$SCRUT_BIN" create --format cram -- /bin/echo hello
+$ scrut.exe create --format cram -- scrut-testbin.exe echo hello
 Command executes successfully
-  $ /bin/echo hello
+  $ scrut-testbin.exe echo hello
   hello
 ```

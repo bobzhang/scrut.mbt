@@ -2,6 +2,8 @@
 // std::str (scripts/oracle, mode `misc`).
 
 ///|
+/// The tables are generated on Unix (`\` escapes, `/` separates).
+#cfg(not(platform="windows"))
 test "globs match like globset" {
   let failures = []
   for case in glob_cases {
@@ -35,6 +37,7 @@ test "globs match like globset" {
 }
 
 ///|
+#cfg(not(platform="windows"))
 test "paths behave like std::path" {
   let failures = []
   for case in path_cases {

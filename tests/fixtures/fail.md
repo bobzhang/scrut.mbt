@@ -1,10 +1,10 @@
 # Failing tests
 
 ```scrut
-$ /bin/echo world
+$ scrut-testbin.exe echo world
 hello
 ```
 
 ```scrut
-$ /bin/sh -c 'exit 3'
+$ scrut-testbin.exe exit 3
 ```

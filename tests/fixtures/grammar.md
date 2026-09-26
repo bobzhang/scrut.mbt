@@ -4,20 +4,20 @@ A command runs one program, without a shell. Anything a shell would
 interpret fails with exit code 2 and a hint.
 
 ```scrut {output_stream: stderr}
-$ /bin/echo a | /usr/bin/wc -l
-scrut: cannot run `/bin/echo a | /usr/bin/wc -l`: pipes (`|`) are not supported (quote '|' to pass it literally)
+$ scrut-testbin.exe echo a | wc -l
+scrut: cannot run `scrut-testbin.exe echo a | wc -l`: pipes (`|`) are not supported (quote '|' to pass it literally)
 [2]
 ```
 
 ```scrut {output_stream: stderr}
-$ /bin/echo $HOME
-scrut: cannot run `/bin/echo $HOME`: unquoted `$` is not supported; write "$NAME" (in double quotes) to use a variable (quote '$' to pass it literally)
+$ scrut-testbin.exe echo $HOME
+scrut: cannot run `scrut-testbin.exe echo $HOME`: unquoted `$` is not supported; write "$NAME" (in double quotes) to use a variable (quote '$' to pass it literally)
 [2]
 ```
 
 ```scrut {output_stream: stderr}
-$ /bin/ls *.md
-scrut: cannot run `/bin/ls *.md`: glob patterns (`*`) are not supported (quote '*' to pass it literally)
+$ scrut-testbin.exe ls *.md
+scrut: cannot run `scrut-testbin.exe ls *.md`: glob patterns (`*`) are not supported (quote '*' to pass it literally)
 [2]
 ```
 

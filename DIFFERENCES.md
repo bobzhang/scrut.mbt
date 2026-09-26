@@ -67,6 +67,12 @@ compare them. This file lists every intentional or known difference.
 
 ## Known (library limits)
 
+- **JSON Schema mode** (`mode: jsonschema`) is not implemented. Such test
+  cases fail with "JSON Schema validation is not supported yet".
+- **Timeouts kill the program, not its children.** `moonbitlang/async`
+  spawns children in the same process group on Unix, so a grandchild of a
+  timed-out program keeps running (its output is no longer read).
+
 - **YAML configuration with duplicate keys** is rejected. serde_yaml accepts
   duplicates of fields it ignores.
 - **Regex expectations use `moonbitlang/regexp`** behind a translation from

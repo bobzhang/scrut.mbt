@@ -1,7 +1,7 @@
 A Cram document
 
-  $ /bin/echo cram
+  $ scrut-testbin.exe echo cram
   cram
 
-  $ /usr/bin/printf "no newline"
+  $ scrut-testbin.exe print "no newline"
   no newline (no-eol)

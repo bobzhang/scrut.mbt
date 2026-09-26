@@ -18,3 +18,5 @@ import {
 }
 
 preferred_target = "native"
+
+warnings = "-implicit_impl_as_method"

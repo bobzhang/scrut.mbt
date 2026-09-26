@@ -1,0 +1,15 @@
+[package]
+name = "scrut-oracle"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Differential-test and table generator for scrut.mbt, pinned to the crate
+# versions upstream scrut (.repos/scrut/Cargo.lock) uses.
+[dependencies]
+unicode_categories = "=0.1.1"
+strip-ansi-escapes = "=0.2.1"
+wildmatch = "=2.6.1"
+regex = "1"
+
+[workspace]

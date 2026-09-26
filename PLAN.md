@@ -11,6 +11,79 @@ test documents, expectation rules, inline configuration), and output matches
 upstream (the `pretty`, `diff`, `json`/`yaml` and `junit` renderers, and
 `update`). The one intentional difference is execution: there is no shell.
 
+## Decisions after review (Codex, 2026-09-26)
+
+These override the sections below where they differ.
+
+1. **Tokenizer: our own grammar, the intersection with bash.** An accepted
+   command must have exactly one reading in bash: a single simple command,
+   no expansions. Rules:
+   - **Quoting.** Words are separated by blanks. `'...'` is literal.
+     `"..."` is literal except that `\"`, `\\`, `\$`, `` \` `` and
+     backslash-newline are escapes; `\x` for any other `x` keeps the
+     backslash, as in bash. Outside quotes, `\x` is `x`, and a
+     backslash-newline disappears.
+   - **Rejected unquoted:**
+     - operators: `| & ; < > ( )`;
+     - backticks and `$` (anywhere, including `$'…'` and `$"…"`);
+     - glob characters `* ? [`;
+     - braces `{ }`;
+     - `~` at the start of a word;
+     - `#` at the start of a word.
+   - **Rejected inside double quotes:** `$` and backticks, unless escaped.
+   - **Newlines.** A newline outside quotes must follow a backslash (a
+     continuation line). Otherwise it's an error ("one command per test
+     case").
+   - **First word.** Rejected if it is a reserved word (`if then else elif
+     fi case esac for select while until do done function time`), `!`, `[[`
+     or `]]`.
+   - **Other errors:** unmatched quotes, a trailing backslash, and NUL.
+   - **Empty words.** `""` and `''` produce empty arguments.
+   - **Assignments.** They are recognised before quote removal: a leading
+     word whose raw text starts with `NAME=` (unquoted `NAME`). So
+     `X="y z"` is an assignment, while `"X=y"` is the program. A command
+     made only of assignments is an error.
+2. **Process results mimic bash**, so exit codes stay oracle-comparable:
+   - a missing program exits with 127 and prints `<prog>: command not
+     found` on stderr;
+   - a program that isn't executable exits with 126;
+   - a process killed by a signal reports `128+signal`.
+   - Both streams are always drained. `combined` shares one pipe for
+     stdout and stderr, so ordering is the child's write order.
+3. **Interpolation** (`interpolated: true`) resolves variables from the
+   environment passed to the child. Upstream uses the shell's environment
+   after execution, which no longer exists; this is documented.
+4. **Environment precedence** follows upstream's `config.rs` merging exactly
+   (defaults overwrite duplicate keys, fixed variables, then `SCRUT_TEST`
+   last), with the command's leading assignments applied on top.
+5. **Test-document semantics** follow upstream's `stateful_executor`:
+   - a timeout aborts the remaining test cases;
+   - `skip_document_code` skips the whole document, discarding earlier
+     results;
+   - `wait.path` is relative to the temporary directory, and when the wait
+     expires, execution simply resumes.
+
+   Cram documents use the same executor as Markdown (upstream runs Cram in
+   one bash process; we have no shell). Cram-specific defaults are kept.
+6. **No shell built-ins.** A command whose first word is a common built-in
+   that isn't found on `PATH` (`cd`, `export`, `echo` on Windows, …) gets a
+   specific diagnostic that points to the `cwd`/`environment` settings.
+   Timeouts kill the process tree where the OS allows it. Detached processes
+   are cleaned up on every exit path.
+7. **Windows.** Argv is encoded per the Microsoft C runtime convention
+   (quotes, empty arguments, trailing backslashes), with tests in phase 1.
+   `.bat` and `.cmd` files are not executable targets.
+8. **Oracle hygiene.** Oracle documents run an absolute-path helper binary,
+   never bash built-ins. Environment, file order, cwd and non-TTY/no-colour
+   settings are fixed. Only identified fields are normalised (temporary
+   paths, durations, JUnit timestamps). Stderr is compared too. `update`
+   runs on isolated copies and is checked for idempotence.
+9. **Phase order.** An end-to-end slice comes first: one helper-backed test
+   plus an `update` round trip on macOS and Windows. After that the full
+   rule set and renderers, and finally `create` and `jsonschema`. Regex
+   inline flags and POSIX classes go into `moonbitlang/regexp` rather than
+   being rejected long-term.
+
 ## Execution without a shell
 
 A test case's `$ ...` line, plus its `> ...` continuation lines, is tokenized

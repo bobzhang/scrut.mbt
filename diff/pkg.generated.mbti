@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/diff"
+
+import {
+  "bobzhang/scrut/rules",
+}
+
+// Values
+pub fn diff(Array[@rules.Expectation], BytesView) -> Diff
+
+// Errors
+
+// Types and methods
+pub struct Diff {
+  lines : Array[DiffLine]
+  count_matched : Int
+  count_unmatched : Int
+  count_output_lines : Int
+}
+pub fn Diff::debug_string(Self) -> String
+pub fn Diff::has_differences(Self) -> Bool
+pub fn Diff::new(Array[DiffLine]) -> Self
+
+pub enum DiffLine {
+  MatchedExpectation(index~ : Int, expectation~ : @rules.Expectation, lines~ : Array[(Int, Bytes)])
+  UnmatchedExpectation(index~ : Int, expectation~ : @rules.Expectation)
+  UnexpectedLines(lines~ : Array[(Int, Bytes)])
+}
+
+// Type aliases
+
+// Traits

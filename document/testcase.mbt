@@ -100,3 +100,18 @@ pub fn rust_lines(text : String) -> Array[String] {
   }
   lines
 }
+
+///|
+/// The format a test document is written in.
+pub(all) enum ParserType {
+  Markdown
+  Cram
+} derive(Eq, Debug)
+
+///|
+pub fn ParserType::to_string(self : ParserType) -> String {
+  match self {
+    Markdown => "markdown"
+    Cram => "cram"
+  }
+}

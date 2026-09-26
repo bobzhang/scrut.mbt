@@ -1,0 +1,27 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/argv"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn parse_command(String) -> Command raise ArgvError
+
+pub fn tokenize(String) -> Array[String] raise ArgvError
+
+// Errors
+pub(all) suberror ArgvError {
+  ArgvError(String)
+} derive(@debug.Debug)
+pub impl Show for ArgvError
+
+// Types and methods
+pub(all) struct Command {
+  env : Array[(String, String)]
+  argv : Array[String]
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

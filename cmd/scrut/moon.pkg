@@ -1,5 +1,12 @@
 import {
   "bobzhang/scrut" @lib,
+  "bobzhang/scrut/app",
+  "bobzhang/scrut/render",
+  "bobzhang/scrut/text",
+  "moonbitlang/core/argparse",
+  "moonbitlang/async",
+  "moonbitlang/async/stdio",
+  "moonbitlang/x/sys",
 }
 
 pkgtype(kind: "executable")

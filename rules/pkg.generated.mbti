@@ -1,0 +1,80 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/rules"
+
+import {
+  "bobzhang/scrut/text",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn cleanup_unrecognized_escape_sequences(String) -> String
+
+pub fn escape_misused_character_class(String) -> String
+
+pub fn escape_misused_repetition_quantifier(String) -> String
+
+pub fn fixup_regex(String) -> String
+
+pub fn translate_rust_regex(String, start_anchor? : Bool, end_anchor? : Bool) -> String raise RuleError
+
+// Errors
+pub(all) suberror RuleError {
+  RuleError(String)
+} derive(@debug.Debug)
+pub impl Show for RuleError
+
+// Types and methods
+pub struct Expectation {
+  optional : Bool
+  multiline : Bool
+  rule : Rule
+  original : String
+}
+pub fn Expectation::matches(Self, BytesView) -> Bool
+pub fn Expectation::to_expression_string(Self, @text.Escaper) -> String
+pub fn Expectation::unmake(Self) -> (String, Bytes, Bool, Bool)
+pub impl Eq for Expectation
+pub impl Show for Expectation
+
+pub struct ExpectationMaker {
+  cram_glob : Bool
+}
+pub fn ExpectationMaker::make(Self, String, String, Bool, Bool, String) -> Expectation raise RuleError
+pub fn ExpectationMaker::new(cram_compat? : Bool) -> Self
+pub fn ExpectationMaker::parse(Self, String) -> Expectation raise RuleError
+
+pub struct RegexMatcher {
+  expression : String
+  // private fields
+}
+pub fn RegexMatcher::matches(Self, String) -> Bool
+pub fn RegexMatcher::matches_bytes(Self, BytesView) -> Bool
+pub fn RegexMatcher::new(String) -> Self raise RuleError
+
+pub enum Rule {
+  Equal(String)
+  NoEol(String)
+  Escaped(String, Bytes)
+  Glob(WildMatch)
+  CramGlob(String)
+  Regex(RegexMatcher)
+}
+pub fn Rule::kind(Self) -> String
+pub fn Rule::make(String, String, cram_glob~ : Bool) -> Self raise RuleError
+pub fn Rule::matches(Self, BytesView) -> Bool
+pub fn Rule::to_expression_string(Self, Bool, Bool, @text.Escaper) -> String
+pub fn Rule::to_string(Self) -> String
+pub fn Rule::unmake(Self) -> (String, Bytes)
+pub impl Eq for Rule
+pub impl Show for Rule
+
+pub struct WildMatch {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn WildMatch::matches(Self, String) -> Bool
+pub fn WildMatch::new(String) -> Self
+pub fn WildMatch::to_string(Self) -> String
+
+// Type aliases
+
+// Traits

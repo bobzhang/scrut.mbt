@@ -1,0 +1,56 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/render"
+
+import {
+  "bobzhang/scrut/document",
+  "bobzhang/scrut/exec",
+  "bobzhang/scrut/text",
+}
+
+// Values
+pub let default_multiline_matched_lines : Int
+
+pub let default_surrounding_lines : Int
+
+pub fn render_pretty(PrettyRenderer, Array[Outcome], styled? : Bool) -> String
+
+pub fn strip_colors(String) -> String
+
+// Errors
+
+// Types and methods
+pub(all) struct Outcome {
+  location : String?
+  output : @exec.Output
+  testcase : @document.TestCase
+  format : @document.ParserType
+  escaping : @text.Escaper
+  result : Result[Unit, @exec.TestCaseError]
+}
+pub fn Outcome::render_header(Self, color? : Bool) -> String
+
+pub struct Painter {
+  color : Bool
+}
+pub fn Painter::blue(Self, String) -> String
+pub fn Painter::bold(Self, String) -> String
+pub fn Painter::green(Self, String) -> String
+pub fn Painter::green_bold(Self, String) -> String
+pub fn Painter::new(Bool) -> Self
+pub fn Painter::red(Self, String) -> String
+pub fn Painter::red_bold(Self, String) -> String
+pub fn Painter::yellow(Self, String) -> String
+
+pub(all) struct PrettyRenderer {
+  color : Bool
+  max_surrounding_lines : Int
+  absolute_line_numbers : Bool
+  summarize : Bool
+  max_multiline_matched_lines : Int
+}
+pub fn PrettyRenderer::new(color? : Bool, max_surrounding_lines? : Int, absolute_line_numbers? : Bool, summarize? : Bool, max_multiline_matched_lines? : Int) -> Self
+pub fn PrettyRenderer::render(Self, Array[Outcome]) -> String
+
+// Type aliases
+
+// Traits

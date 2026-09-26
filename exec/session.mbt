@@ -45,7 +45,9 @@ pub async fn execute_document(
   testcases : Array[@document.TestCase],
   context : Context,
 ) -> ExecutionResult {
-  let total_timeout = context.config.total_timeout.unwrap_or(default_total_timeout)
+  let total_timeout = context.config.total_timeout.unwrap_or(
+    default_total_timeout,
+  )
   let timeout_at = if total_timeout == @config.Duration::zero() {
     None
   } else {
@@ -54,13 +56,16 @@ pub async fn execute_document(
   let outputs : Array[Output] = []
   let result = @async.with_task_group(group => {
     for index, testcase in testcases {
-      let mut config = testcase.config.with_defaults_from(context.config.defaults)
+      let mut config = testcase.config.with_defaults_from(
+        context.config.defaults,
+      )
       // The test case's own timeout wins over the remaining total (upstream
       // orders timeouts by `is_global` first).
       let left = timeout_at.map(at => {
         @config.Duration::from_millis((at - @async.now()).max(0L))
       })
-      let (is_global, timeout) : (Bool, @config.Duration?) = match (config.timeout, left) {
+      let (is_global, timeout) : (Bool, @config.Duration?) = match
+        (config.timeout, left) {
         (Some(t), _) => (false, Some(t))
         (None, Some(l)) => (true, Some(l))
         (None, None) => (false, None)
@@ -90,7 +95,7 @@ pub async fn execute_document(
         }
         Timeout(_) =>
           if is_global {
-            outputs.push({ ..output, exit_code: Timeout(total_timeout) })
+            outputs.push({ ..output, exit_code: Timeout(total_timeout), })
             return TimedOut(index~, total=true, outputs~)
           } else {
             outputs.push(output)
@@ -109,7 +114,11 @@ pub async fn execute_document(
     }
     Completed(outputs)
   }) catch {
-    e => Completed(outputs + [{ ..Output::new(Unknown), stderr: @text.to_bytes(e.to_string()) }])
+    e =>
+      Completed(
+        outputs +
+        [{ ..Output::new(Unknown), stderr: @text.to_bytes(e.to_string()), }],
+      )
   }
   result
 }

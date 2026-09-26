@@ -1,0 +1,76 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/text"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn apply_escaped_filter_bytes(String) -> Bytes raise EscapeError
+
+pub fn apply_escaped_filter_utf8(String) -> String raise EscapeError
+
+pub fn assure_newline(BytesView) -> Bytes
+
+pub fn assure_newline_str(String) -> String
+
+pub fn compare_utf8(String, String) -> Int
+
+pub fn ends_in_newline(BytesView) -> Bool
+
+pub fn expression_as_escaped(String) -> String?
+
+pub fn is_other(Char) -> Bool
+
+pub fn json_quote(String) -> String
+
+pub fn lossy_string(BytesView) -> String
+
+pub fn replace_crlf(BytesView) -> Bytes
+
+pub fn split_at_newline(BytesView) -> Array[BytesView]
+
+pub fn strip_ansi(BytesView) -> Bytes
+
+pub fn to_bytes(StringView) -> Bytes
+
+pub fn trim_newlines(BytesView) -> BytesView
+
+pub fn trim_newlines_str(String) -> String
+
+pub fn unescape_tabs(String) -> String
+
+pub fn utf8_segments(BytesView) -> Array[(Int, String, Int)]
+
+pub fn utf8_string(BytesView) -> String?
+
+// Errors
+pub(all) suberror EscapeError {
+  EscapeError(String)
+} derive(@debug.Debug)
+pub impl Show for EscapeError
+
+// Types and methods
+pub(all) enum Escaper {
+  Ascii
+  Unicode
+} derive(Eq, @debug.Debug)
+pub fn Escaper::escaped_expectation(Self, BytesView) -> String
+pub fn Escaper::escaped_printable(Self, BytesView) -> String
+pub fn Escaper::has_unprintable(Self, BytesView) -> Bool
+
+pub(all) enum JsonValue {
+  JNull
+  JBool(Bool)
+  JNumber(String)
+  JString(String)
+  JArray(Array[JsonValue])
+  JObject(Array[(String, JsonValue)])
+} derive(Eq, @debug.Debug)
+pub fn JsonValue::sorted(Self) -> Self
+pub fn JsonValue::to_string(Self) -> String
+pub fn JsonValue::to_string_pretty(Self) -> String
+
+// Type aliases
+
+// Traits

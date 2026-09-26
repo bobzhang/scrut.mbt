@@ -322,6 +322,17 @@ fn Atom::new(text : String) -> Atom {
 }
 
 ///|
+/// The members of Rust's Unicode `\w` class: alphabetic characters
+/// (letters, letter numbers and the alphabetic symbols among
+/// `Other_Alphabetic`), marks, decimal digits, connector punctuation and
+/// join controls.
+let word_class : String = "\\p{L}\\p{Nl}\\p{M}\\p{Nd}\\p{Pc}\\u{200C}\\u{200D}\\u{24B6}-\\u{24E9}\\u{1F130}-\\u{1F149}\\u{1F150}-\\u{1F169}\\u{1F170}-\\u{1F189}"
+
+///|
+/// The members of Rust's Unicode `\s` class (`White_Space`).
+let space_class : String = "\\t\\n\\u{B}\\u{C}\\r \\u{85}\\u{A0}\\u{1680}\\u{2000}-\\u{200A}\\u{2028}\\u{2029}\\u{202F}\\u{205F}\\u{3000}"
+
+///|
 /// Letters Rust's regex accepts after a backslash.
 fn is_rust_escape_letter(c : Char) -> Bool {
   match c {
@@ -353,7 +364,13 @@ fn is_rust_escape_letter(c : Char) -> Bool {
 ///|
 /// Translate Rust `regex` syntax into `moonbitlang/regexp` syntax. Features
 /// the target engine lacks (inline flags, class set operations) are errors.
-pub fn translate_rust_regex(expression : String) -> String raise RuleError {
+/// With `start_anchor` (`end_anchor`) off, `^` (`$`) never matches: for
+/// matching a part of the text that does not start (end) it.
+pub fn translate_rust_regex(
+  expression : String,
+  start_anchor? : Bool = true,
+  end_anchor? : Bool = true,
+) -> String raise RuleError {
   let chars = expression.to_array()
   let n = chars.length()
   let units : Array[Atom] = []
@@ -410,6 +427,19 @@ pub fn translate_rust_regex(expression : String) -> String raise RuleError {
       }
     } else if (c2 == 'p' || c2 == 'P') && i + 2 < n && chars[i + 2] != '{' {
       ("\\" + c2.to_string() + "{" + chars[i + 2].to_string() + "}", i + 3)
+    } else if c2 == 'w' {
+      // Rust's `\w` is Unicode aware, the target engine's is ASCII only.
+      (if in_class { word_class } else { "[" + word_class + "]" }, i + 2)
+    } else if c2 == 'W' && !in_class {
+      ("[^" + word_class + "]", i + 2)
+    } else if c2 == 's' {
+      (if in_class { space_class } else { "[" + space_class + "]" }, i + 2)
+    } else if c2 == 'S' && !in_class {
+      ("[^" + space_class + "]", i + 2)
+    } else if c2 == 'd' {
+      ("\\p{Nd}", i + 2)
+    } else if c2 == 'D' {
+      ("\\P{Nd}", i + 2)
     } else if c2 == 'A' && !in_class {
       ("^", i + 2)
     } else if c2 == 'z' && !in_class {
@@ -531,6 +561,12 @@ pub fn translate_rust_regex(expression : String) -> String raise RuleError {
         units.push({ ..Atom::new(c.to_string()), assertion: true, })
         i += 1
       }
+      '.' => {
+        // Rust's `.` matches everything but a line feed (the target
+        // engine's also excludes a carriage return).
+        units.push(Atom::new("[^\\n]"))
+        i += 1
+      }
       '*' | '+' | '?' | '{' => {
         // A quantifier (a `{` here is a valid repetition after the fix-ups).
         let mut j = i + 1
@@ -583,10 +619,19 @@ pub fn translate_rust_regex(expression : String) -> String raise RuleError {
   }
   let out = StringBuilder()
   for u in units {
-    out.write_string(u.text)
+    if u.assertion &&
+      ((u.text == "^" && !start_anchor) || (u.text == "$" && !end_anchor)) {
+      out.write_string(impossible)
+    } else {
+      out.write_string(u.text)
+    }
   }
   out.to_string()
 }
+
+///|
+/// A class that matches nothing.
+let impossible : String = "[^\\s\\S]"
 
 ///|
 /// A compiled regex expectation: upstream's fix-ups applied, matching the
@@ -596,6 +641,9 @@ pub struct RegexMatcher {
   priv regexp : @regexp.Regexp
   /// Whether the pattern uses `\b`/`\B` (see `RegexMatcher::matches`).
   priv word_boundary : Bool
+  /// Variants with the start and/or end anchor disabled, compiled when
+  /// output that is not valid UTF-8 is matched.
+  priv variants : Map[(Bool, Bool), @regexp.Regexp]
 }
 
 ///|
@@ -608,12 +656,15 @@ pub fn RegexMatcher::new(expression : String) -> RegexMatcher raise RuleError {
     e => raise RuleError("invalid regex `\{fixed}`: \{e}")
   }
   let word_boundary = translated.contains("\\b") || translated.contains("\\B")
-  { expression: fixed, regexp, word_boundary, }
+  { expression: fixed, regexp, word_boundary, variants: Map([]), }
 }
 
 ///|
-/// Whether the regex matches the whole line (without its line feed).
-pub fn RegexMatcher::matches(self : RegexMatcher, line : String) -> Bool {
+fn RegexMatcher::matches_text(
+  self : RegexMatcher,
+  regexp : @regexp.Regexp,
+  line : String,
+) -> Bool {
   // Workaround: `moonbitlang/regexp` 0.3.5 panics evaluating a word boundary
   // next to a non-BMP character (it reads a lone low surrogate). Such
   // characters are not word characters, so a BMP non-word placeholder keeps
@@ -626,5 +677,49 @@ pub fn RegexMatcher::matches(self : RegexMatcher, line : String) -> Bool {
   } else {
     line
   }
-  self.regexp.execute(line).matched()
+  regexp.execute(line).matched()
+}
+
+///|
+/// Whether the regex matches the whole line (without its line feed).
+pub fn RegexMatcher::matches(self : RegexMatcher, line : String) -> Bool {
+  self.matches_text(self.regexp, line)
+}
+
+///|
+/// Whether the regex matches output bytes (without the line feed) like
+/// upstream's Unicode byte regex: a match never covers bytes that are not
+/// valid UTF-8, so it lies within a valid part, where `^` and `$` hold only
+/// at the start and end of the whole line.
+pub fn RegexMatcher::matches_bytes(
+  self : RegexMatcher,
+  line : BytesView,
+) -> Bool {
+  if @text.utf8_string(line) is Some(text) {
+    return self.matches_text(self.regexp, text)
+  }
+  for segment in @text.utf8_segments(line) {
+    let (start, text, end) = segment
+    let key = (start == 0, end == line.length())
+    let regexp = match self.variants.get(key) {
+      Some(r) => r
+      None => {
+        let r = @regexp.compile(
+          translate_rust_regex(
+            "^" + self.expression + "$",
+            start_anchor=key.0,
+            end_anchor=key.1,
+          ),
+        ) catch {
+          _ => continue
+        }
+        self.variants[key] = r
+        r
+      }
+    }
+    if self.matches_text(regexp, text) {
+      return true
+    }
+  }
+  false
 }

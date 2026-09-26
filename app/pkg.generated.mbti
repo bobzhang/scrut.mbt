@@ -1,0 +1,115 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/app"
+
+import {
+  "bobzhang/scrut/config",
+  "bobzhang/scrut/document",
+  "bobzhang/scrut/text",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn colors_enabled(Map[String, String]) -> Bool
+
+pub async fn current_directory() -> String
+
+pub let default_markdown_languages : ReadOnlyArray[String]
+
+pub let default_match_cram : String
+
+pub let default_match_markdown : String
+
+pub fn is_terminal(Int) -> Bool
+
+pub fn path_file_name(String) -> String
+
+pub fn path_join(String, String) -> String
+
+pub fn path_parent(String) -> String
+
+pub async fn run_test(TestArgs, Terminal) -> Int
+
+pub let validation_failed_exit_code : Int
+
+// Errors
+pub(all) suberror AppError {
+  AppError(Array[String])
+} derive(@debug.Debug)
+pub impl Show for AppError
+
+pub(all) suberror GlobError {
+  GlobError(String)
+} derive(@debug.Debug)
+pub impl Show for GlobError
+
+// Types and methods
+pub struct FileParser {
+  match_markdown : Glob
+  match_cram : Glob
+  markdown_languages : Array[String]
+}
+pub async fn FileParser::find_and_parse(Self, String, Array[String], Bool) -> Array[ParsedTestFile]
+pub fn FileParser::new(String, String, Array[String]) -> Self raise AppError
+
+pub struct Glob {
+  pattern : String
+  // private fields
+}
+pub fn Glob::is_match(Self, String) -> Bool
+pub fn Glob::new(String) -> Self raise GlobError
+pub fn Glob::to_string(Self) -> String
+
+pub(all) struct GlobalArgs {
+  cram_compat : Bool
+  combine_output : Bool?
+  keep_output_crlf : Bool?
+  escaping : @text.Escaper?
+  shell : String?
+  work_directory : String?
+  keep_temporary_directories : Bool
+  timeout_seconds : UInt64?
+  no_color : Bool
+}
+pub fn GlobalArgs::default() -> Self
+
+pub(all) struct ParsedTestFile {
+  path : String
+  parser_type : @document.ParserType
+  testcases : Array[@document.TestCase]
+  config : @config.DocumentConfig
+}
+
+pub(all) enum RendererKind {
+  Auto
+  Pretty
+  Diff
+  Json
+  Yaml
+  Junit
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Terminal {
+  write_out : async (String) -> Unit
+  write_err : async (String) -> Unit
+  colors : Bool
+  progress : Bool
+}
+
+pub(all) struct TestArgs {
+  paths : Array[String]
+  prepend : Array[String]
+  append : Array[String]
+  markdown_languages : Array[String]
+  match_cram : String
+  match_markdown : String
+  renderer : RendererKind
+  absolute_line_numbers : Bool
+  max_multiline_matched_lines : Int
+  verbose : Bool
+  global : GlobalArgs
+}
+pub fn TestArgs::new(Array[String]) -> Self
+
+// Type aliases
+
+// Traits

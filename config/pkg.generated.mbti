@@ -1,0 +1,113 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/config"
+
+import {
+  "bobzhang/scrut/text",
+  "moonbit-community/yaml",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub let default_document_timeout_secs : UInt64
+
+pub let default_skip_document_code : Int
+
+pub fn document_config_from_yaml(@yaml.Yaml) -> DocumentConfig raise ConfigError
+
+pub fn parse_duration(String) -> Duration raise DurationError
+
+pub fn parse_yaml(String) -> @yaml.Yaml raise ConfigError
+
+pub fn test_case_config_from_yaml(@yaml.Yaml) -> TestCaseConfig raise ConfigError
+
+// Errors
+pub(all) suberror ConfigError {
+  ConfigError(String)
+} derive(@debug.Debug)
+pub impl Show for ConfigError
+
+pub(all) suberror DurationError {
+  DurationError(String)
+} derive(@debug.Debug)
+pub impl Show for DurationError
+
+// Types and methods
+pub(all) struct DocumentConfig {
+  append : Array[String]
+  defaults : TestCaseConfig
+  prepend : Array[String]
+  shell : String?
+  total_timeout : Duration?
+} derive(Eq, @debug.Debug)
+pub fn DocumentConfig::default_cram() -> Self
+pub fn DocumentConfig::default_markdown() -> Self
+pub fn DocumentConfig::empty() -> Self
+pub fn DocumentConfig::to_json(Self) -> @text.JsonValue
+pub fn DocumentConfig::with_defaults_from(Self, Self) -> Self
+pub fn DocumentConfig::with_overrides_from(Self, Self) -> Self
+
+pub struct Duration {
+  secs : UInt64
+  nanos : Int
+} derive(Compare, Eq, @debug.Debug)
+pub fn Duration::as_millis(Self) -> Int64
+pub fn Duration::from_millis(Int64) -> Self
+pub fn Duration::from_secs(UInt64) -> Self
+pub fn Duration::to_string(Self) -> String
+pub fn Duration::zero() -> Self
+pub impl Show for Duration
+
+pub(all) enum KillSignal {
+  Disabled
+  Enabled(String)
+} derive(Eq, @debug.Debug)
+pub fn KillSignal::parse(String) -> Self raise ConfigError
+pub fn KillSignal::to_string(Self) -> String
+
+pub(all) enum OutputStream {
+  Stdout
+  Stderr
+  Combined
+} derive(Eq, @debug.Debug)
+pub fn OutputStream::name(Self) -> String
+
+pub(all) struct TestCaseConfig {
+  detached : Bool?
+  detached_kill_signal : KillSignal?
+  fail_fast : Bool?
+  environment : Array[(String, String)]
+  keep_crlf : Bool?
+  output_stream : OutputStream?
+  skip_document_code : Int?
+  strip_ansi_escaping : Bool?
+  timeout : Duration?
+  wait : Wait?
+  interpolated : Bool?
+  mode : TestMode?
+  stdin : String?
+  cwd : String?
+} derive(Eq, @debug.Debug)
+pub fn TestCaseConfig::default_cram() -> Self
+pub fn TestCaseConfig::default_markdown() -> Self
+pub fn TestCaseConfig::empty() -> Self
+pub fn TestCaseConfig::is_empty(Self) -> Bool
+pub fn TestCaseConfig::is_json_schema(Self) -> Bool
+pub fn TestCaseConfig::skip_document_code_or_default(Self) -> Int
+pub fn TestCaseConfig::to_json(Self) -> @text.JsonValue
+pub fn TestCaseConfig::with_defaults_from(Self, Self) -> Self
+pub fn TestCaseConfig::with_environment(Self, Array[(String, String)]) -> Self
+pub fn TestCaseConfig::with_overrides_from(Self, Self) -> Self
+
+pub(all) enum TestMode {
+  Output
+  JsonSchema
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Wait {
+  timeout : Duration
+  path : String?
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

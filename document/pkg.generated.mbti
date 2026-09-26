@@ -1,0 +1,65 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/document"
+
+import {
+  "bobzhang/scrut/config",
+  "bobzhang/scrut/rules",
+  "bobzhang/scrut/text",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn extract_code_block_start(String) -> (String, String, String)?
+
+pub fn extract_exit_code(String) -> Int?
+
+pub fn extract_title(String) -> String?
+
+pub fn is_comment(String) -> Bool
+
+pub fn parse_cram(String) -> Document raise ParseError
+
+pub fn parse_markdown(String, languages? : Array[String], cram_compat? : Bool) -> Document raise ParseError
+
+pub fn rust_lines(String) -> Array[String]
+
+pub fn rust_trim(String) -> String
+
+// Errors
+pub(all) suberror ParseError {
+  ParseError(String)
+} derive(@debug.Debug)
+pub impl Show for ParseError
+
+// Types and methods
+pub(all) struct Document {
+  config : @config.DocumentConfig
+  testcases : Array[TestCase]
+}
+
+pub(all) enum ParserType {
+  Markdown
+  Cram
+} derive(Eq, @debug.Debug)
+pub fn ParserType::to_string(Self) -> String
+
+pub(all) struct TestCase {
+  title : String
+  shell_expression : String
+  body : ValidationBody
+  exit_code : Int?
+  line_number : Int
+  config : @config.TestCaseConfig
+}
+pub fn TestCase::expectations(Self) -> Array[@rules.Expectation]
+pub fn TestCase::shell_expression_lines(Self) -> Int
+pub fn TestCase::to_json(Self) -> @text.JsonValue
+
+pub(all) enum ValidationBody {
+  Output(Array[@rules.Expectation])
+  JsonSchema(String)
+}
+
+// Type aliases
+
+// Traits

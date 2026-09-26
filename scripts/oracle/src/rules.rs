@@ -14,7 +14,7 @@ const GLOB: &[&str] = &["*", "?", "**", "\\*", "\\?", "\\\\", "a*b", "*x*"];
 const REGEX: &[&str] = &[
     ".*", "\\d+", "\\d{3}", "[a-z]+", "[^0-9]", "(foo|bar)", "a{2,3}", "{x}", "\\[", "\\]",
     "[[]]", "\\_", "\\/", ".+?", "\\s*", "\\w", "^", "$", "\\.", "[0-9]{1,2}", "x?", "(?:ab)*",
-    "\\x41", "\\p{L}", "\\bfoo\\b", "[[:digit:]]",
+    "\\x41", "\\p{L}", "\\bfoo\\b", "[[:digit:]]", "\\w+", "\\W", "\\d", "\\D", "[\\w]+", ".+",
 ];
 const ESC: &[&str] = &["\\t", "\\x1b", "\\x00", "\\\\", "\\e", "\\r", "\\0101", "\\x", "\\a"];
 const KINDS: &[&str] = &[
@@ -63,6 +63,10 @@ fn output_lines(rng: &mut Rng, expr_line: &str) -> Vec<Vec<u8>> {
     out.push(b"\x1b\n".to_vec());
     out.push(b"tab\there\n".to_vec());
     out.push(b"123\n".to_vec());
+    // Invalid UTF-8 and non-ASCII word characters and digits.
+    out.push(rng.pick(&[&b"\xffbad\n"[..], b"a\xc3\n", b"\xff", b"foo\x80\n"]).to_vec());
+    out.push(rng.pick(&[&b"cr\rcr\n"[..], b"a\x0bb\n", b"\xc2\x85\n", b"x\xe2\x80\xa8y\n"]).to_vec());
+    out.push(rng.pick(&["\u{65e5}\u{672c}\n", "\u{e9}\n", "\u{663}\n", "\u{24b6}\n", "x\u{301}\n"]).as_bytes().to_vec());
     out
 }
 

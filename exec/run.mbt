@@ -339,7 +339,11 @@ pub async fn[X] run_detached(
   let config = tc.config
   let command = @argv.parse_command(tc.shell_expression) catch {
     e =>
-      return start_failure(config, 2, "scrut: cannot run `\{tc.shell_expression}`: \{e}")
+      return start_failure(
+        config,
+        2,
+        "scrut: cannot run `\{tc.shell_expression}`: \{e}",
+      )
   }
   let env = process_environment(config, command.env)
   let cwd = match config.cwd {
@@ -350,7 +354,8 @@ pub async fn[X] run_detached(
   let program = match find_program(name, env, cwd) {
     Found(p) => p
     NotFound => return start_failure(config, 127, "\{name}: command not found")
-    NotExecutable(p) => return start_failure(config, 126, "\{p}: Permission denied")
+    NotExecutable(p) =>
+      return start_failure(config, 126, "\{p}: Permission denied")
   }
   let extra_env : Map[String, String] = Map([])
   for e in env {
@@ -364,7 +369,7 @@ pub async fn[X] run_detached(
     let out = @process.redirect_to_file(null_device)
     let err = @process.redirect_to_file(null_device)
     match config.detached_kill_signal {
-      Some(Disabled) => {
+      Some(Disabled) =>
         ignore(
           @process.spawn_orphan(
             program,
@@ -377,7 +382,6 @@ pub async fn[X] run_detached(
             cwd~,
           ),
         )
-      }
       signal => {
         let handler = match signal {
           Some(Enabled("kill")) => @process.hard_cancel()

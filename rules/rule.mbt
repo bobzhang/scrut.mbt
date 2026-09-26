@@ -38,9 +38,12 @@ pub fn Rule::matches(self : Rule, line : BytesView) -> Bool {
     NoEol(text) => @text.to_bytes(text) == line.to_owned()
     Escaped(_, bytes) => bytes == @text.trim_newlines(line).to_owned()
     Glob(w) => w.matches(@text.lossy_string(@text.trim_newlines(line)))
+    // Upstream matches with an anchored Unicode byte regex, which never
+    // matches bytes that are not valid UTF-8.
     CramGlob(pattern) =>
-      cram_glob_matches(pattern, @text.lossy_string(@text.trim_newlines(line)))
-    Regex(r) => r.matches(@text.lossy_string(@text.trim_newlines(line)))
+      @text.utf8_string(@text.trim_newlines(line)) is Some(text) &&
+      cram_glob_matches(pattern, text)
+    Regex(r) => r.matches_bytes(@text.trim_newlines(line))
   }
 }
 

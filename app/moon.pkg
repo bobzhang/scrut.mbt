@@ -1,0 +1,13 @@
+import {
+  "bobzhang/scrut/text",
+  "bobzhang/scrut/config",
+  "bobzhang/scrut/document",
+  "bobzhang/scrut/exec",
+  "bobzhang/scrut/render",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+}
+
+options(
+  "native-stub": [ "tty.c" ],
+)

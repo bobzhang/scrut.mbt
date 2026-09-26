@@ -1,0 +1,84 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/exec"
+
+import {
+  "bobzhang/scrut/config",
+  "bobzhang/scrut/diff",
+  "bobzhang/scrut/document",
+  "bobzhang/scrut/text",
+  "moonbitlang/async",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub async fn execute_document(Array[@document.TestCase], Context) -> ExecutionResult
+
+pub async fn execute_script(Array[@document.TestCase], Context) -> ExecutionResult
+
+pub fn interpolate_str(String, Array[(String, String)]) -> String
+
+pub fn output_string(BytesView, String, @text.Escaper) -> String
+
+pub fn process_environment(@config.TestCaseConfig, Array[(String, String)]) -> Array[(String, String)]
+
+pub fn render_output(@config.TestCaseConfig, BytesView) -> Bytes
+
+pub async fn[X] run_detached(@async.TaskGroup[X], @document.TestCase, Context) -> Output
+
+pub async fn run_testcase(@document.TestCase, Context) -> Output
+
+pub fn validate(@document.TestCase, Output) -> Result[Unit, TestCaseError]
+
+// Errors
+pub(all) suberror ExecutionError {
+  ExecutionError(String)
+} derive(@debug.Debug)
+pub impl Show for ExecutionError
+
+// Types and methods
+pub(all) struct Context {
+  work_directory : String
+  temp_directory : String
+  file : String
+  config : @config.DocumentConfig
+}
+
+pub(all) enum ExecutionResult {
+  Completed(Array[Output])
+  SkippedAt(Int)
+  TimedOut(index~ : Int, total~ : Bool, outputs~ : Array[Output])
+  FailedAt(index~ : Int, outputs~ : Array[Output])
+}
+
+pub(all) enum ExitStatus {
+  Code(Int)
+  Timeout(@config.Duration)
+  Skipped
+  Detached
+  Unknown
+} derive(Eq, @debug.Debug)
+pub fn ExitStatus::as_code(Self) -> Int
+pub fn ExitStatus::to_string(Self) -> String
+
+pub(all) struct Output {
+  stdout : Bytes
+  stderr : Bytes
+  exit_code : ExitStatus
+  env : Array[(String, String)]
+  duration_ms : Int64?
+} derive(@debug.Debug)
+pub fn Output::new(ExitStatus) -> Self
+pub fn Output::to_error_string(Self, @text.Escaper) -> String
+
+pub(all) enum TestCaseError {
+  MalformedOutput(@diff.Diff)
+  JsonSchemaFailed(String, Array[String])
+  InvalidExitCode(actual~ : Int, expected~ : Int)
+  InternalError(String)
+  Timeout
+  Skipped
+}
+
+// Type aliases
+
+// Traits

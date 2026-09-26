@@ -100,7 +100,7 @@ def testcase(rng, cram):
     lines = random_lines(rng)
     eol = rng.random() < 0.8
     fmt = "\\n".join(lines) + ("\\n" if eol and lines else "")
-    code = rng.choice([0, 0, 0, 0, 1, 2, 80])
+    code = 80 if rng.random() < 0.02 else rng.choice([0, 0, 0, 0, 1, 2, 3])
     to_stderr = rng.random() < 0.15
     if code == 0 and not to_stderr and rng.random() < 0.7:
         command = f"{PRINTF} {shell_quote(fmt)}"
@@ -125,24 +125,80 @@ def testcase(rng, cram):
     return title, command, exp, expected_code
 
 
-def markdown_document(rng):
-    out = ["# Generated", ""]
+SLEEP = "/bin/sleep"
+PRINTENV = "/usr/bin/printenv"
+
+
+def special_testcase(rng):
+    """Test cases exercising execution configuration: (config, command
+    lines, expectations, exit code)."""
+    kind = rng.choice(["timeout", "env", "stderr", "interpolate", "detached",
+                       "wait", "continuation", "skip", "exit"])
+    if kind == "timeout":
+        return ["timeout: 200ms"], [f"{SLEEP} 2"], [], 0
+    # A variable per test case: upstream's shell state would carry one test
+    # case's variables into the next (see DIFFERENCES.md).
+    var = f"VAR{rng.randrange(10**6)}"
+    if kind == "env":
+        value = rng.choice(["bar", "with space", "é"])
+        exp = [value] if rng.random() < 0.7 else ["other"]
+        return [f'environment: {{{var}: "{value}"}}'], [f"{PRINTENV} {var}"], exp, 0
+    if kind == "stderr":
+        script = "printf 'out\\n'; printf 'err\\n' >&2"
+        stream = rng.choice(["stderr", "combined", "stdout"])
+        return [f"output_stream: {stream}"], [f"{SH} -c {shell_quote(script)}"], \
+            rng.choice([["err"], ["out"], ["out", "err"]]), 0
+    if kind == "interpolate":
+        return [f'environment: {{{var}: "bar"}}', "interpolated: true"], \
+            [f"{PRINTENV} {var}"], [rng.choice([f"${var}", f"${{{var}}}", "bar", "$BAR"])], 0
+    if kind == "detached":
+        return ["detached: true"], [f"{SLEEP} 0.2"], [], 0
+    if kind == "wait":
+        return ["wait: 50ms"], [f"{PRINTF} 'waited\\n'"], ["waited"], 0
+    if kind == "continuation":
+        return [], [f"{PRINTF} \\", "'%s\\n' a b"], ["a", "b"], 0
+    if kind == "skip":
+        return ["skip_document_code: 9"], [f"{SH} -c 'exit 9'"], [], 0
+    return [], [f"{SH} -c 'exit 5'"], [], rng.choice([5, 0])
+
+
+def markdown_document(rng, work):
+    out = []
+    if rng.random() < 0.15:
+        front = rng.choice([
+            ["defaults: {output_stream: combined}"],
+            ["total_timeout: 1s"],
+            ["prepend: [common.md]"],
+            ["append: [common.md]"],
+            ["defaults: {environment: {FOO: \"doc\"}}"],
+        ])
+        out += ["---", *front, "---", ""]
+        if any("common.md" in f for f in front):
+            with open(os.path.join(work, "common.md"), "w") as f:
+                f.write("```scrut\n$ /bin/echo common\ncommon\n```\n")
+    out += ["# Generated", ""]
     for _ in range(rng.randint(1, 5)):
-        title, command, exp, code = testcase(rng, False)
+        if rng.random() < 0.25:
+            config, lines, exp, code = special_testcase(rng)
+            title = ""
+        else:
+            title, command, exp, code = testcase(rng, False)
+            lines = [command]
+            config = []
+            if rng.random() < 0.1:
+                config.append("output_stream: combined")
+            if rng.random() < 0.05:
+                config.append("keep_crlf: true")
+            if rng.random() < 0.05:
+                config.append("strip_ansi_escaping: true")
+            if rng.random() < 0.05:
+                config.append("fail_fast: true")
         if title:
             out += [title, ""]
-        config = []
-        if rng.random() < 0.1:
-            config.append("output_stream: combined")
-        if rng.random() < 0.05:
-            config.append("keep_crlf: true")
-        if rng.random() < 0.05:
-            config.append("strip_ansi_escaping: true")
-        if rng.random() < 0.05:
-            config.append("fail_fast: true")
         header = "```scrut" + (" {" + ", ".join(config) + "}" if config else "")
         out.append(header)
-        out.append(f"$ {command}")
+        out.append(f"$ {lines[0]}")
+        out += [f"> {line}" for line in lines[1:]]
         out += exp
         if code:
             out.append(f"[{code}]")
@@ -264,7 +320,7 @@ def main():
     for n in range(opts.count):
         cram = rng.random() < 0.3
         name = f"doc{n}.t" if cram else f"doc{n}.md"
-        text = cram_document(rng) if cram else markdown_document(rng)
+        text = cram_document(rng) if cram else markdown_document(rng, work)
         with open(os.path.join(work, name), "w") as f:
             f.write(text)
         color = rng.random() < 0.3

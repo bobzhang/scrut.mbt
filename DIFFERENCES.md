@@ -11,6 +11,9 @@ compare them. This file lists every intentional or known difference.
     `cd`.
   - Use the `environment` and `cwd` configuration instead, and `stdin` for
     input.
+  - A test case's `environment` applies to that test case only. Upstream's
+    shell state carries the variables into later test cases, where they even
+    take precedence over those test cases' own `environment` values.
 - **Interpolation** (`interpolated: true`) resolves `$VAR` from the
   environment passed to the program, not from a shell's environment after
   execution.

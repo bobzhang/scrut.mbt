@@ -11,5 +11,6 @@ unicode_categories = "=0.1.1"
 strip-ansi-escapes = "=0.2.1"
 wildmatch = "=2.6.1"
 regex = "1"
+scrut = { path = "../../.repos/scrut" }
 
 [workspace]

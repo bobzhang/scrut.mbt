@@ -1,3 +1,6 @@
+mod rng;
+mod text;
+
 use unicode_categories::UnicodeCategories;
 
 /// Ranges of code points for which `char::is_other()` holds (general
@@ -30,6 +33,7 @@ fn tables() {
 fn main() {
     match std::env::args().nth(1).as_deref() {
         Some("tables") => tables(),
+        Some("text") => text::main(),
         other => panic!("unknown mode {other:?}"),
     }
 }

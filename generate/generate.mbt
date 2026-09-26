@@ -41,6 +41,45 @@ fn testcase_expression(outcome : @render.Outcome) -> String {
 }
 
 ///|
+/// Whether an expectation line would be read as something else by the
+/// document parser: a command (Cram), a continuation of the command (right
+/// after it) or an exit code.
+fn misread(expectation : String, first : Bool, cram : Bool) -> Bool {
+  (cram && expectation.has_prefix("$ ")) ||
+  (first && (expectation == ">" || expectation.has_prefix("> "))) ||
+  @document.extract_exit_code(expectation) is Some(_)
+}
+
+///|
+/// An expectation line for an output line (with its line feed, if any)
+/// that reads back as a rule matching it. Upstream writes the escaped line
+/// as is, which can be misread (see DIFFERENCES.md); the forced escaped
+/// form is used then.
+fn expectation_line(
+  outcome : @render.Outcome,
+  bytes : BytesView,
+  first : Bool,
+) -> String {
+  let escaping = outcome.escaping
+  let expectation = escaping.exact_expectation(@text.trim_newlines(bytes))
+  let eol = bytes.length() > 0 && bytes[bytes.length() - 1] == b'\n'
+  // An escaped expectation matches with or without a line feed.
+  let line = if eol || expectation.has_suffix(" (escaped)") {
+    expectation
+  } else {
+    expectation + " (no-eol)"
+  }
+  let cram = outcome.format is Cram
+  let maker = @rules.ExpectationMaker::new(cram_compat=cram)
+  let reads_back = maker.parse(line).matches(bytes) catch { _ => false }
+  if reads_back && !misread(line, first, cram) {
+    line
+  } else {
+    escaping.forced_expectation(bytes)
+  }
+}
+
+///|
 fn testcase_exit_code(outcome : @render.Outcome) -> String? {
   match outcome.output.exit_code {
     Code(code) if code != 0 => Some("[\{code}]\n")
@@ -66,24 +105,19 @@ pub fn generate_testcase(
       }
     }
     Err(MalformedOutput(diff)) => {
+      let mut written = 0
       for line in diff.lines {
         match line {
-          MatchedExpectation(expectation~, ..) =>
+          MatchedExpectation(expectation~, ..) => {
             generated.write_string(assure_newline(expectation.original))
+            written += 1
+          }
           UnexpectedLines(lines~) =>
             for entry in lines {
-              let bytes = entry.1
-              let suffix = if bytes.length() > 0 &&
-                bytes[bytes.length() - 1] == b'\n' {
-                ""
-              } else {
-                " (no-eol)"
-              }
               generated.write_string(
-                outcome.escaping.escaped_expectation(@text.trim_newlines(bytes)) +
-                suffix +
-                "\n",
+                expectation_line(outcome, entry.1, written == 0) + "\n",
               )
+              written += 1
             }
           UnmatchedExpectation(_) => ()
         }
@@ -93,12 +127,10 @@ pub fn generate_testcase(
       }
     }
     Err(InvalidExitCode(actual~, ..)) => {
-      let output = @exec.output_string(
-        outcome.output.stdout,
-        "",
-        outcome.escaping,
-      )
-      generated.write_string(output)
+      // Upstream's `to_output_string`, with expectations that read back.
+      for idx, line in @text.split_at_newline(outcome.output.stdout) {
+        generated.write_string(expectation_line(outcome, line, idx == 0) + "\n")
+      }
       generated.write_string("[\{actual}]\n")
     }
     Err(JsonSchemaFailed(_)) =>
@@ -245,8 +277,15 @@ fn cram_indented(indent : String, from : String) -> String {
   if from.is_empty() {
     return ""
   }
-  trim_end(from).split("\n").map(line => indent + line.to_owned()).join("\n") +
-  "\n"
+  // Upstream trims all trailing whitespace here, which drops trailing empty
+  // expectation lines and the trailing spaces of the last one; only the
+  // final line feed is removed.
+  let body = if from.has_suffix("\n") {
+    from[:from.length() - 1].to_owned()
+  } else {
+    from
+  }
+  body.split("\n").map(line => indent + line.to_owned()).join("\n") + "\n"
 }
 
 ///|

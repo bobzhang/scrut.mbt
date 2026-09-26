@@ -34,6 +34,20 @@ compare them. This file lists every intentional or known difference.
   order).
 - **A scrut code block containing only comments** yields no test case
   (upstream panics).
+- **`scrut update` writes documents that pass.** Upstream's generated
+  expectations can read back as something else, so its updated document
+  fails. scrut checks each generated line and writes it in an escaped form
+  when needed. Upstream fails on:
+  - an escaped line without a line feed (`\t (escaped) (no-eol)` becomes a
+    literal no-eol rule);
+  - a backslash next to an escaped character (Unicode escaping keeps it
+    unescaped);
+  - output that looks like a rule suffix (`x (re)`), an exit code (`[1]`),
+    a command (`$ ` in Cram) or a continuation (`> ` on the first line);
+  - trailing empty lines and trailing spaces in Cram documents, which
+    upstream trims away.
+
+  A property test checks this for random output (`generate/`).
 - **Trailing whitespace highlighting** in failure output splits at the right
   character when the whitespace is not ASCII. Upstream mixes byte and
   character offsets there, and panics or highlights too little.

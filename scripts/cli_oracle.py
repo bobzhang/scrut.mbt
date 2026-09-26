@@ -293,6 +293,37 @@ UPDATE_FLAG_SETS = [
 ]
 
 
+def upstream_update_bug(work, name, text, expected, actual):
+    """Whether differing `update` results are upstream writing documents
+    that fail (the port fixes that, see DIFFERENCES.md): each document
+    upstream wrote fails upstream's `test`, each the port wrote passes the
+    port's."""
+    def written(result):
+        return {k: v for k, v in result[3].items()
+                if k != name or v != text.encode()}
+    ours, theirs = written(actual), written(expected)
+    if ours.keys() != theirs.keys() or expected[0] != actual[0] or not ours:
+        return False
+    for tag, binary, files, should_pass in (("uu", UPSTREAM, theirs, False),
+                                            ("pp", PORT, ours, True)):
+        d = os.path.join(work, tag)
+        shutil.rmtree(d, ignore_errors=True)
+        os.makedirs(d)
+        passed = []
+        for i, (k, v) in enumerate(sorted(files.items())):
+            # A name the document parsers recognize.
+            base = k[:-len(".new")] if k.endswith(".new") else k
+            base = base[:-len(".upd")] if base.endswith(".upd") else base
+            check = f"check{i}" + (".t" if base.endswith(".t") else ".md")
+            with open(os.path.join(d, check), "wb") as f:
+                f.write(v)
+            code, _, _ = run(binary, [check], d, False)
+            passed.append(code == 0)
+        if should_pass != all(passed) or (not should_pass and any(passed)):
+            return False
+    return True
+
+
 def run_update(binary, flags, name, text, work, tag, color):
     """Run `update` on a fresh copy; returns exit, stdout, stderr and the
     files the update wrote."""
@@ -324,6 +355,7 @@ def main():
     rng = random.Random(opts.seed)
     work = tempfile.mkdtemp(prefix="scrut-oracle.")
     failures = 0
+    upstream_bugs = 0
     for n in range(opts.count):
         cram = rng.random() < 0.3
         name = f"doc{n}.t" if cram else f"doc{n}.md"
@@ -335,6 +367,9 @@ def main():
             flags = ["update"] + rng.choice(UPDATE_FLAG_SETS)
             expected = run_update(UPSTREAM, flags[1:], name, text, work, "u", color)
             actual = run_update(PORT, flags[1:], name, text, work, "p", color)
+            if expected != actual and upstream_update_bug(work, name, text, expected, actual):
+                upstream_bugs += 1
+                continue
         else:
             flags = rng.choice(FLAG_SETS)
             code, out, _ = run(UPSTREAM, [*flags, name], work, color)
@@ -349,7 +384,9 @@ def main():
                 print(*expected[1:], sep="\n")
                 print("--- port (exit %d)" % actual[0])
                 print(*actual[1:], sep="\n")
-    print(f"{opts.count - failures}/{opts.count} documents agree (work dir {work})")
+    print(f"{opts.count - failures}/{opts.count} documents agree (work dir {work})"
+          + (f"; {upstream_bugs} update(s) differ where upstream's update fails its own test"
+             if upstream_bugs else ""))
     if not opts.keep and failures == 0:
         shutil.rmtree(work)
     sys.exit(1 if failures else 0)

@@ -59,6 +59,8 @@ pub(all) enum Escaper {
 } derive(Eq, @debug.Debug)
 pub fn Escaper::escaped_expectation(Self, BytesView) -> String
 pub fn Escaper::escaped_printable(Self, BytesView) -> String
+pub fn Escaper::exact_expectation(Self, BytesView) -> String
+pub fn Escaper::forced_expectation(Self, BytesView) -> String
 pub fn Escaper::has_unprintable(Self, BytesView) -> Bool
 
 pub(all) enum JsonValue {

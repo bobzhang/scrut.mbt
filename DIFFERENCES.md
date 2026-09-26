@@ -67,6 +67,11 @@ compare them. This file lists every intentional or known difference.
 
 ## Known (library limits)
 
+- **On the wasm backend** (`moonrun`, `moonx`) scrut cannot tell whether
+  output goes to a terminal. It prints no progress lines and uses colors
+  only with `CLICOLOR_FORCE`. JUnit timestamps are in UTC there, because
+  no time zone is available.
+
 - **JSON Schema mode** (`mode: jsonschema`) is not implemented. Such test
   cases fail with "JSON Schema validation is not supported yet".
 - **Timeouts kill the program, not its children.** `moonbitlang/async`

@@ -211,7 +211,7 @@ pub async fn run_test(args : TestArgs, term : Terminal) -> Int {
       @render.render_junit(
         outcomes,
         base_directory=current,
-        timestamp=local_timestamp(),
+        timestamp?=local_timestamp(),
         styled=term.colors,
       )
   }

@@ -21,7 +21,7 @@ pub let default_match_markdown : String
 
 pub fn is_terminal(Int) -> Bool
 
-pub fn local_timestamp() -> String
+pub fn local_timestamp() -> String?
 
 pub fn path_extension(String) -> String?
 
@@ -38,6 +38,8 @@ pub async fn run_create(CreateArgs, Terminal, async () -> String) -> Int
 pub async fn run_test(TestArgs, Terminal) -> Int
 
 pub async fn run_update(UpdateArgs, Terminal, async (String) -> Bool) -> Int
+
+pub fn utc_timestamp(Int64) -> String
 
 pub let validation_failed_exit_code : Int
 

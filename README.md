@@ -43,6 +43,11 @@ _build/native/release/build/cmd/scrut/scrut.exe test tests/
   - `--convert cram|markdown` to convert them.
 - `scrut create <command>` runs a command and prints a test document for it.
 
+scrut also builds for the wasm backend (`moon build --target wasm`) and runs
+under `moonrun`, as `moonx` runs published tools. It can test such tools
+too: `$ moonx cli/jq ".a"` is an ordinary command (see
+[tests/moonx.md](tests/moonx.md)).
+
 The flags and the configuration keys (`environment`, `timeout`,
 `output_stream`, `detached`, `wait`, `skip_document_code`, `fail_fast`, ...)
 are upstream's. See the

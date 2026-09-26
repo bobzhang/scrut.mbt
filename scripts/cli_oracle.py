@@ -19,6 +19,8 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPSTREAM = os.path.join(ROOT, ".repos/scrut/target/release/scrut")
 PORT = os.path.join(ROOT, "_build/native/release/build/cmd/scrut/scrut.exe")
+# `--wasm` runs the wasm build with moonrun instead (as `moonx` would).
+PORT_WASM = os.path.join(ROOT, "_build/wasm/release/build/cmd/scrut/scrut.wasm")
 PRINTF = "/usr/bin/printf"
 SH = "/bin/sh"
 
@@ -284,7 +286,8 @@ def run(binary, args, cwd, color, command="test"):
     env.pop("CLICOLOR_FORCE", None)
     if color:
         env["CLICOLOR_FORCE"] = "1"
-    p = subprocess.run([binary, command, *args], cwd=cwd, env=env,
+    prefix = ["moonrun", binary, "--"] if binary.endswith(".wasm") else [binary]
+    p = subprocess.run([*prefix, command, *args], cwd=cwd, env=env,
                        capture_output=True, timeout=60)
     return p.returncode, p.stdout, p.stderr
 
@@ -362,7 +365,12 @@ def main():
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--count", type=int, default=100)
     ap.add_argument("--keep", action="store_true")
+    ap.add_argument("--wasm", action="store_true",
+                    help="test the wasm build (moonrun) instead of the native one")
     opts = ap.parse_args()
+    if opts.wasm:
+        global PORT
+        PORT = PORT_WASM
     rng = random.Random(opts.seed)
     work = tempfile.mkdtemp(prefix="scrut-oracle.")
     failures = 0

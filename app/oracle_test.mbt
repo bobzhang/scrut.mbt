@@ -98,3 +98,11 @@ test "UTF-8 errors read like Rust's" {
     )
   }
 }
+
+///|
+test "UTC timestamps" {
+  inspect(@app.utc_timestamp(0L), content="1970-01-01T00:00:00")
+  inspect(@app.utc_timestamp(951782400L), content="2000-02-29T00:00:00")
+  inspect(@app.utc_timestamp(1790389845L), content="2026-09-26T02:30:45")
+  inspect(@app.utc_timestamp(-1L), content="1969-12-31T23:59:59")
+}

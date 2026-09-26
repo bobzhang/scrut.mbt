@@ -61,7 +61,7 @@ fn expectation_line(
   first : Bool,
 ) -> String {
   let escaping = outcome.escaping
-  let expectation = escaping.exact_expectation(@text.trim_newlines(bytes))
+  let expectation = escaping.escaped_expectation(@text.trim_newlines(bytes))
   let eol = bytes.length() > 0 && bytes[bytes.length() - 1] == b'\n'
   // An escaped expectation matches with or without a line feed.
   let line = if eol || expectation.has_suffix(" (escaped)") {

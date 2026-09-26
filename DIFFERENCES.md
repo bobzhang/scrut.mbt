@@ -39,8 +39,8 @@ compare them. This file lists every intentional or known difference.
   when needed. Upstream fails on:
   - an escaped line without a line feed (`\t (escaped) (no-eol)` becomes a
     literal no-eol rule);
-  - a backslash next to an escaped character (Unicode escaping keeps it
-    unescaped);
+  - a backslash that forms an escape sequence next to an escaped character
+    (Unicode escaping keeps backslashes as they are);
   - output that looks like a rule suffix (`x (re)`), an exit code (`[1]`),
     a command (`$ ` in Cram) or a continuation (`> ` on the first line);
   - trailing empty lines and trailing spaces in Cram documents, which

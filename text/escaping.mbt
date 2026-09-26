@@ -128,32 +128,6 @@ fn escaped_printable_unicode(bytes : BytesView) -> String {
 }
 
 ///|
-/// Like `escaped_expectation`, but an `(escaped)` expectation always reads
-/// back as the line: upstream's Unicode escaper leaves backslashes as they
-/// are when it escapes other characters, which makes such expectations
-/// ambiguous. Used where expectations are written (`scrut update`).
-pub fn Escaper::exact_expectation(self : Escaper, raw : BytesView) -> String {
-  let expectation = self.escaped_expectation(raw)
-  guard self is Unicode &&
-    expectation.has_suffix(" (escaped)") &&
-    utf8_string(trim_newlines(raw)) is Some(s) &&
-    s.contains("\\") else {
-    return expectation
-  }
-  let buf = StringBuilder()
-  for c in s {
-    if c == '\\' {
-      buf.write_string("\\\\")
-    } else if is_other(c) {
-      buf.write_string(escaped_printable_ascii(to_bytes(c.to_string())))
-    } else {
-      buf.write_char(c)
-    }
-  }
-  "\{buf} (escaped)"
-}
-
-///|
 /// An `(escaped)` expectation for a line that cannot be written any other
 /// way: printable characters are kept (per the escaper), backslashes
 /// doubled, the first character hex-escaped (so the line cannot look like a

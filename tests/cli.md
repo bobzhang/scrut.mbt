@@ -2,7 +2,7 @@
 
 These tests run `scrut.exe` on the documents in `fixtures/`, with the
 built `scrut.exe` and `scrut-testbin.exe` (a portable stand-in for shell
-tools) on `PATH` (see `scripts/selftest.sh`).
+tools) on `PATH` (see `scripts/selftest.mbtx`).
 
 ## Passing documents
 

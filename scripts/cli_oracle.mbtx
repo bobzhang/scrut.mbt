@@ -1,0 +1,1089 @@
+///|
+import {
+  "moonbitlang/async@0.22.4",
+  "moonbitlang/async@0.22.4/fs",
+  "moonbitlang/async@0.22.4/process",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/random",
+  "moonbitlang/core/string",
+  "moonbitlang/x@0.5.5/sys",
+}
+
+///|
+/// Compare `scrut test` of this port with upstream on random documents.
+///
+/// Documents only use commands that mean the same without a shell (absolute
+/// program paths, POSIX quoting), so upstream (which runs them with bash) and
+/// the port must agree byte for byte on stdout and the exit code.
+///
+///     moonx scripts/cli_oracle.mbtx [--seed N] [--count N] [--keep] [--wasm]
+///
+/// `--wasm` tests the wasm build (run with moonrun, as `moonx` would) instead
+/// of the native one. Build both first with `moon build --target native
+/// --release` and `moon build --target wasm --release`.
+async fn main {
+  let opts = parse_options(@env.args()[1:])
+  let root = find_root()
+  let oracle = Oracle::{
+    upstream: root + "/.repos/scrut/target/release/scrut",
+    port: if opts.wasm {
+      root + "/_build/wasm/release/build/cmd/scrut/scrut.wasm"
+    } else {
+      root + "/_build/native/release/build/cmd/scrut/scrut.exe"
+    },
+    env: {
+      let env = @env.get_env_vars()
+      env.remove("CLICOLOR_FORCE")
+      env
+    },
+  }
+  for binary in [oracle.upstream, oracle.port] {
+    if !@fs.exists(binary) {
+      println("cli_oracle: \{binary} is missing; build it first")
+      @sys.exit(2)
+    }
+  }
+  let rng = Rng::new(opts.seed)
+  let work = @fs.tmpdir(prefix="scrut-oracle")
+  let mut failures = 0
+  let mut upstream_bugs = 0
+  for n in 0..<opts.count {
+    let cram = rng.random() < 0.3
+    let name = if cram { "doc\{n}.t" } else { "doc\{n}.md" }
+    let text = if cram {
+      cram_document(rng)
+    } else {
+      markdown_document(rng, work)
+    }
+    @fs.write_file(work + "/" + name, text, create_mode=CreateOrTruncate)
+    let color = rng.random() < 0.3
+    let (flags, expected, actual) = if rng.random() < 0.3 {
+      let update_flags = rng.choice(update_flag_sets)
+      let expected = oracle.run_update(
+        oracle.upstream,
+        update_flags,
+        name,
+        text,
+        work,
+        "u",
+        color,
+      )
+      let actual = oracle.run_update(
+        oracle.port,
+        update_flags,
+        name,
+        text,
+        work,
+        "p",
+        color,
+      )
+      if expected != actual &&
+        oracle.upstream_update_bug(work, name, text, expected, actual) {
+        upstream_bugs += 1
+        continue
+      }
+      (["update", ..update_flags], expected, actual)
+    } else {
+      let flags = rng.choice(flag_sets)
+      let (code, out, _) = oracle.run(
+        oracle.upstream,
+        [..flags, name],
+        work,
+        color,
+      )
+      let expected = Outcome::Test(code, normalize(flags, out))
+      let (code, out, _) = oracle.run(oracle.port, [..flags, name], work, color)
+      let actual = Outcome::Test(code, normalize(flags, out))
+      (flags, expected, actual)
+    }
+    if expected != actual {
+      failures += 1
+      println(
+        "MISMATCH \{name} flags=\{py_list(flags)} color=\{if color { "True" } else { "False" }}",
+      )
+      if failures <= 3 {
+        println("--- upstream (exit \{expected.code()})")
+        println(expected.details())
+        println("--- port (exit \{actual.code()})")
+        println(actual.details())
+      }
+    }
+  }
+  let bugs = if upstream_bugs > 0 {
+    "; \{upstream_bugs} update(s) differ where upstream's update fails its own test"
+  } else {
+    ""
+  }
+  println(
+    "\{opts.count - failures}/\{opts.count} documents agree (work dir \{work})\{bugs}",
+  )
+  if !opts.keep && failures == 0 {
+    rmtree(work)
+  }
+  @sys.exit(if failures > 0 { 1 } else { 0 })
+}
+
+// Options
+
+///|
+struct Options {
+  seed : Int
+  count : Int
+  keep : Bool
+  wasm : Bool
+}
+
+///|
+fn parse_options(args : ArrayView[String]) -> Options {
+  let usage = "usage: cli_oracle.mbtx [-h] [--seed SEED] [--count COUNT] [--keep] [--wasm]"
+  let mut seed = 1
+  let mut count = 100
+  let mut keep = false
+  let mut wasm = false
+  let mut i = 0
+  fn bad(message : String) -> Int {
+    println(usage)
+    println("cli_oracle.mbtx: error: " + message)
+    @sys.exit(2)
+    0
+  }
+
+  while i < args.length() {
+    let arg = args[i]
+    i += 1
+    let (option, inline) = match arg.find("=") {
+      Some(eq) if arg.has_prefix("--") =>
+        (arg[:eq].to_owned(), Some(arg[eq + 1:].to_owned()))
+      _ => (arg, None)
+    }
+    match option {
+      "-h" | "--help" => {
+        println(usage)
+        println(
+          "\n  --wasm  test the wasm build (moonrun) instead of the native one",
+        )
+        @sys.exit(0)
+      }
+      "--keep" => keep = true
+      "--wasm" => wasm = true
+      "--seed" | "--count" => {
+        let value = match inline {
+          Some(v) => v
+          None if i < args.length() => {
+            i += 1
+            args[i - 1]
+          }
+          None => {
+            ignore(bad("argument \{option}: expected one argument"))
+            ""
+          }
+        }
+        let n = @string.parse_int(value) catch {
+          _ => bad("argument \{option}: invalid int value: '\{value}'")
+        }
+        if option == "--seed" {
+          seed = n
+        } else {
+          count = n
+        }
+      }
+      _ => ignore(bad("unrecognized arguments: \{arg}"))
+    }
+  }
+  { seed, count, keep, wasm, }
+}
+
+// Random documents
+
+///|
+let printf_path = "/usr/bin/printf"
+
+///|
+let sh_path = "/bin/sh"
+
+///|
+let sleep_path = "/bin/sleep"
+
+///|
+let printenv_path = "/usr/bin/printenv"
+
+///|
+let pieces : Array[String] = [
+  "hello",
+  "world",
+  "foo bar",
+  "  indented",
+  "trailing  ",
+  "tab\\there",
+  "x".repeat(90),
+  "é",
+  "日本語",
+  "😀",
+  "\\033[31mred\\033[0m",
+  "\\001ctl",
+  "a*b",
+  "[x]",
+  "(re)",
+  "50%%",
+  "back\\\\slash",
+  "cr\\r",
+  "\\377bad",
+  "",
+  " ",
+  "\\t",
+]
+
+///|
+fn shell_quote(s : String) -> String {
+  "'" + s.replace_all(old="'", new="'\\''") + "'"
+}
+
+///|
+/// What printf prints for a format without conversions.
+fn printf_output(fmt : String) -> Bytes {
+  let out : Array[Byte] = []
+  let b = @utf8.encode(fmt)
+  let mut i = 0
+  while i < b.length() {
+    let c = b[i]
+    if c == b'\\' && i + 1 < b.length() {
+      let simple : Byte? = match b[i + 1] {
+        b'n' => Some(10)
+        b't' => Some(9)
+        b'r' => Some(13)
+        b'\\' => Some(92)
+        b'a' => Some(7)
+        b'b' => Some(8)
+        b'f' => Some(12)
+        b'v' => Some(11)
+        _ => None
+      }
+      if simple is Some(byte) {
+        out.push(byte)
+        i += 2
+        continue
+      }
+      if is_octal(b[i + 1]) {
+        let mut j = i + 1
+        let mut v = 0
+        while j < b.length() && j < i + 4 && is_octal(b[j]) {
+          v = v * 8 + b[j].to_int() - 48
+          j += 1
+        }
+        out.push((v & 0xFF).to_byte())
+        i = j
+        continue
+      }
+    }
+    if c == b'%' && i + 1 < b.length() && b[i + 1] == b'%' {
+      out.push(b'%')
+      i += 2
+      continue
+    }
+    out.push(c)
+    i += 1
+  }
+  Bytes::from_array(out)
+}
+
+///|
+fn is_octal(b : Byte) -> Bool {
+  b >= b'0' && b <= b'7'
+}
+
+///|
+fn random_lines(rng : Rng) -> Array[String] {
+  let lines = []
+  for _ in 0..<rng.choice([0, 1, 1, 2, 3, 4, 6, 12]) {
+    let parts = Array::makei(rng.choice([1, 1, 2]), _ => rng.choice(pieces))
+    lines.push(
+      if rng.random() < 0.3 {
+        parts.join(" ")
+      } else {
+        parts.join("")
+      },
+    )
+  }
+  lines
+}
+
+///|
+/// Whether Python's `str.isprintable()` holds for `c` (for the characters
+/// the documents contain: controls, format and separator characters).
+fn is_printable(c : Char) -> Bool {
+  let c = c.to_int()
+  !(c < 0x20 ||
+  (c >= 0x7F && c <= 0xA0) ||
+  c == 0xAD ||
+  (c >= 0x2000 && c <= 0x200F) ||
+  (c >= 0x2028 && c <= 0x202F) ||
+  (c >= 0x205F && c <= 0x206F) ||
+  c == 0x1680 ||
+  c == 0x3000 ||
+  c == 0xFEFF ||
+  (c >= 0xD800 && c <= 0xDFFF))
+}
+
+///|
+/// Whether Python's `str.isspace()` holds for `c`.
+fn is_py_space(c : Char) -> Bool {
+  let c = c.to_int()
+  (c >= 0x09 && c <= 0x0D) ||
+  (c >= 0x1C && c <= 0x20) ||
+  c == 0x85 ||
+  c == 0xA0 ||
+  c == 0x1680 ||
+  (c >= 0x2000 && c <= 0x200A) ||
+  c == 0x2028 ||
+  c == 0x2029 ||
+  c == 0x202F ||
+  c == 0x205F ||
+  c == 0x3000
+}
+
+///|
+/// Python's `str.strip()`.
+fn py_strip(s : String) -> String {
+  let chars = s.to_array()
+  let mut start = 0
+  let mut end = chars.length()
+  while start < end && is_py_space(chars[start]) {
+    start += 1
+  }
+  while end > start && is_py_space(chars[end - 1]) {
+    end -= 1
+  }
+  String::from_array(chars[start:end])
+}
+
+///|
+/// An expectation line for one output line (may deliberately fail).
+fn expectation_for(rng : Rng, line : BytesView) -> String {
+  let text = @utf8.decode_lossy(line)
+  let printable = text.iter().all(ch => is_printable(ch) || ch == '\t') &&
+    !text.contains_char('\u{FFFD}')
+  let r = rng.random()
+  if r < 0.45 && printable && py_strip(text) == text && text != "" {
+    return text
+  }
+  if r < 0.55 {
+    return rng.choice(["*", "*o*", "h*"]) + " (glob)"
+  }
+  if r < 0.65 {
+    return rng.choice([".*", "h.*", "[a-z ]+", "\\w+"]) + " (re)"
+  }
+  if r < 0.7 {
+    let rule = rng.choice(["*", ".*"])
+    return rule + rng.choice([" (glob*)", " (re+)", " (glob?)"])
+  }
+  if r < 0.8 {
+    return rng.choice(["nope", "hello", "world", ""])
+  }
+  if printable {
+    return text
+  }
+  text.replace_all(old="\r", new="").replace_all(old="\u{1b}", new="")
+}
+
+///|
+/// A random test case: (title, command, expectations, exit code).
+fn testcase(rng : Rng) -> (String, String, Array[String], Int) {
+  let lines = random_lines(rng)
+  let eol = rng.random() < 0.8
+  let fmt = lines.join("\\n") +
+    (if eol && !lines.is_empty() { "\\n" } else { "" })
+  let code = if rng.random() < 0.02 {
+    80
+  } else {
+    rng.choice([0, 0, 0, 0, 1, 2, 3])
+  }
+  let to_stderr = rng.random() < 0.15
+  let command = if code == 0 && !to_stderr && rng.random() < 0.7 {
+    "\{printf_path} \{shell_quote(fmt)}"
+  } else {
+    let redirect = if to_stderr { " >&2" } else { "" }
+    let script = "printf \{shell_quote(fmt)}\{redirect}; exit \{code}"
+    "\{sh_path} -c \{shell_quote(script)}"
+  }
+  let output = printf_output(fmt)
+  let out_lines = split_bytes(output, b'\n')
+  if out_lines is [.., last] && last.is_empty() {
+    ignore(out_lines.pop())
+  }
+  let exp = out_lines.map(line => expectation_for(rng, line))
+  // Mutations: drop, insert, add multiline or optional lines.
+  if !exp.is_empty() && rng.random() < 0.2 {
+    exp.remove(rng.randrange(exp.length())) |> ignore
+  }
+  if rng.random() < 0.2 {
+    let at = rng.randrange(exp.length() + 1)
+    exp.insert(at, rng.choice(["extra", "* (glob*)", "x (?)"]))
+  }
+  if !eol && !exp.is_empty() && rng.random() < 0.6 {
+    exp[exp.length() - 1] = exp[exp.length() - 1] + " (no-eol)"
+  }
+  let expected_code = if rng.random() < 0.85 {
+    code
+  } else {
+    rng.choice([0, 3])
+  }
+  let title = rng.choice(["", "", "A title", "Ünïcode title"])
+  (title, command, exp, expected_code)
+}
+
+///|
+/// Test cases exercising execution configuration: (config, command lines,
+/// expectations, exit code).
+fn special_testcase(
+  rng : Rng,
+) -> (Array[String], Array[String], Array[String], Int) {
+  let kind = rng.choice([
+    "timeout", "env", "stderr", "interpolate", "detached", "wait", "continuation",
+    "skip", "exit", "variables",
+  ])
+  if kind == "timeout" {
+    return (["timeout: 200ms"], ["\{sleep_path} 2"], [], 0)
+  }
+  // A variable per test case: upstream's shell state would carry one test
+  // case's variables into the next (see DIFFERENCES.md).
+  let variable = "VAR\{rng.randrange(1000000)}"
+  match kind {
+    "env" => {
+      let value = rng.choice(["bar", "with space", "é"])
+      let exp = if rng.random() < 0.7 { [value] } else { ["other"] }
+      (
+        ["environment: {\{variable}: \"\{value}\"}"],
+        ["\{printenv_path} \{variable}"],
+        exp,
+        0,
+      )
+    }
+    "stderr" => {
+      let script = "printf 'out\\n'; printf 'err\\n' >&2"
+      let stream = rng.choice(["stderr", "combined", "stdout"])
+      (
+        ["output_stream: \{stream}"],
+        ["\{sh_path} -c \{shell_quote(script)}"],
+        rng.choice([["err"], ["out"], ["out", "err"]]),
+        0,
+      )
+    }
+    "interpolate" =>
+      (
+        ["environment: {\{variable}: \"bar\"}", "interpolated: true"],
+        ["\{printenv_path} \{variable}"],
+        [rng.choice(["$" + variable, "${" + variable + "}", "bar", "$BAR"])],
+        0,
+      )
+    "detached" => (["detached: true"], ["\{sleep_path} 0.2"], [], 0)
+    "wait" => (["wait: 50ms"], ["\{printf_path} 'waited\\n'"], ["waited"], 0)
+    "continuation" => ([], ["\{printf_path} \\", "'%s\\n' a b"], ["a", "b"], 0)
+    "variables" => {
+      // Expansion in double quotes (the temporary directory is empty).
+      let config = ["environment: {\{variable}: \"v a l\"}"]
+      let command = rng.choice([
+        "\{printf_path} \"[%s]\\n\" \"$TESTFILE\" \"${\{variable}}x\" \"$UNSET\"",
+        "/bin/ls \"$TMPDIR\"",
+        "\{variable}=\"$TESTFILE\" \{printenv_path} \{variable}",
+      ])
+      (config, [command], rng.choice([[], ["[doc0.md]"], ["x"]]), 0)
+    }
+    "skip" => (["skip_document_code: 9"], ["\{sh_path} -c 'exit 9'"], [], 0)
+    _ => ([], ["\{sh_path} -c 'exit 5'"], [], rng.choice([5, 0]))
+  }
+}
+
+///|
+async fn markdown_document(rng : Rng, work : String) -> String {
+  let out = []
+  if rng.random() < 0.15 {
+    let front = rng.choice([
+      ["defaults: {output_stream: combined}"],
+      ["total_timeout: 1s"],
+      ["prepend: [common.md]"],
+      ["append: [common.md]"],
+      ["defaults: {environment: {FOO: \"doc\"}}"],
+    ])
+    out.push_iter(["---", ..front, "---", ""].iter())
+    if front.iter().any(f => f.contains("common.md")) {
+      @fs.write_file(
+        work + "/common.md",
+        "```scrut\n$ /bin/echo common\ncommon\n```\n",
+        create_mode=CreateOrTruncate,
+      )
+    }
+  }
+  out.push_iter(["# Generated", ""].iter())
+  for _ in 0..<rng.randint(1, 5) {
+    let (config, lines, exp, code, title) = if rng.random() < 0.25 {
+      let (config, lines, exp, code) = special_testcase(rng)
+      (config, lines, exp, code, "")
+    } else {
+      let (title, command, exp, code) = testcase(rng)
+      let config = []
+      if rng.random() < 0.1 {
+        config.push("output_stream: combined")
+      }
+      if rng.random() < 0.05 {
+        config.push("keep_crlf: true")
+      }
+      if rng.random() < 0.05 {
+        config.push("strip_ansi_escaping: true")
+      }
+      if rng.random() < 0.05 {
+        config.push("fail_fast: true")
+      }
+      (config, [command], exp, code, title)
+    }
+    if title != "" {
+      out.push_iter([title, ""].iter())
+    }
+    let header = "```scrut" +
+      (if config.is_empty() { "" } else { " {" + config.join(", ") + "}" })
+    out.push(header)
+    out.push("$ \{lines[0]}")
+    for line in lines[1:] {
+      out.push("> \{line}")
+    }
+    out.push_iter(exp.iter())
+    if code != 0 {
+      out.push("[\{code}]")
+    }
+    out.push("```")
+    out.push("")
+  }
+  out.join("\n") + "\n"
+}
+
+///|
+fn cram_document(rng : Rng) -> String {
+  let out = ["Generated", ""]
+  for _ in 0..<rng.randint(1, 5) {
+    let (_, command, exp, code) = testcase(rng)
+    out.push("  $ \{command}")
+    for e in exp {
+      out.push("  " + e)
+    }
+    if code != 0 {
+      out.push("  [\{code}]")
+    }
+    out.push("")
+  }
+  out.join("\n") + "\n"
+}
+
+///|
+let flag_sets : Array[Array[String]] = [
+  [],
+  ["--absolute-line-numbers"],
+  ["--max-multiline-matched-lines", "3"],
+  ["-e", "ascii"],
+  ["--combine-output"],
+  ["--cram-compat"],
+  ["--renderer", "pretty"],
+  ["-r", "diff"],
+  ["-r", "json"],
+  ["-r", "yaml"],
+  ["-r", "junit"],
+  ["-r", "junit", "-e", "ascii"],
+]
+
+///|
+let update_flag_sets : Array[Array[String]] = [
+  [],
+  ["--replace", "-y"],
+  ["-e", "ascii"],
+  ["--convert", "cram"],
+  ["--convert", "markdown"],
+  ["-o", ".upd"],
+]
+
+// Normalization
+
+///|
+let tmp_keys : Array[String] = ["TMPDIR", "CRAMTMP", "TMP", "TEMP"]
+
+///|
+/// Remove what legitimately differs between runs: timings, temporary paths,
+/// the timestamp and upstream's TESTSHELL.
+fn normalize(flags : Array[String], stdout : Bytes) -> String {
+  let text = @utf8.decode_lossy(stdout)
+  if flags.contains("json") {
+    let data = @json.parse(text) catch { _ => return text }
+    return normalize_json(data).stringify(indent=2)
+  }
+  let text = if flags.contains("yaml") { normalize_yaml(text) } else { text }
+  if flags.contains("junit") {
+    replace_attribute(
+      replace_attribute(text, " timestamp=\"", "T"),
+      " time=\"",
+      "t",
+    )
+  } else {
+    text
+  }
+}
+
+///|
+/// Drops `duration_ms` and `TESTSHELL` and replaces the temporary
+/// directories, keeping the key order.
+fn normalize_json(v : Json) -> Json {
+  match v {
+    Object(fields) => {
+      let out = Map([])
+      for k, x in fields {
+        if k == "duration_ms" || k == "TESTSHELL" {
+          continue
+        }
+        let x = if tmp_keys.contains(k) { Json::string("<tmp>") } else { x }
+        out[k] = normalize_json(x)
+      }
+      Json::object(out)
+    }
+    Array(xs) => Json::array(xs.map(normalize_json))
+    _ => v
+  }
+}
+
+///|
+/// The YAML lines `^ *(- )?(duration_ms|TESTSHELL): .*\n` are dropped and
+/// `^( *(- )?(TMPDIR|CRAMTMP|TMP|TEMP)): .*$` become `\1: <tmp>`.
+fn normalize_yaml(text : String) -> String {
+  let lines = text.split("\n").map(l => l.to_owned()).to_array()
+  let out = []
+  for i, line in lines {
+    let last = i == lines.length() - 1
+    match yaml_key(line) {
+      Some((_, "duration_ms" | "TESTSHELL")) if !last => continue
+      Some((end, key)) if tmp_keys.contains(key) =>
+        out.push(line[:end].to_owned() + ": <tmp>")
+      _ => out.push(line)
+    }
+  }
+  out.join("\n")
+}
+
+///|
+/// The key of a `^ *(- )?KEY: ` line among the keys normalization knows, and
+/// where it ends.
+fn yaml_key(line : String) -> (Int, String)? {
+  let mut i = 0
+  while i < line.length() && line[i] == ' ' {
+    i += 1
+  }
+  let rest = line[i:]
+  if rest.has_prefix("- ") {
+    i += 2
+  }
+  let rest = line[i:]
+  for key in ["duration_ms", "TESTSHELL", ..tmp_keys] {
+    if rest.has_prefix(key + ": ") {
+      return Some((i + key.length(), key))
+    }
+  }
+  None
+}
+
+///|
+/// Replaces the values of `attribute="..."` (the regex ` name="[^"]*"`).
+fn replace_attribute(
+  text : String,
+  attribute : String,
+  value : String,
+) -> String {
+  let out = StringBuilder()
+  let mut rest = text[:]
+  while true {
+    guard rest.find(attribute) is Some(at) else { break }
+    let after = rest[at + attribute.length():]
+    guard after.find("\"") is Some(close) else { break }
+    out.write_view(rest[:at])
+    out.write_string(attribute)
+    out.write_string(value)
+    out.write_char('"')
+    rest = after[close + 1:]
+  }
+  out.write_view(rest)
+  out.to_string()
+}
+
+// Running scrut
+
+///|
+struct Oracle {
+  upstream : String
+  port : String
+  env : Map[String, String]
+}
+
+///|
+/// The result of `test` (exit code and normalized stdout) or `update` (exit
+/// code, stdout, stderr and the files after the update, sorted by name).
+enum Outcome {
+  Test(Int, String)
+  Update(Int, Bytes, Bytes, Array[(String, Bytes)])
+} derive(Eq)
+
+///|
+fn Outcome::code(self : Outcome) -> Int {
+  match self {
+    Test(code, _) | Update(code, _, _, _) => code
+  }
+}
+
+///|
+fn Outcome::details(self : Outcome) -> String {
+  match self {
+    Test(_, text) => text
+    Update(_, out, err, files) => {
+      let s = StringBuilder()
+      s.write_string("stdout:\n\{@utf8.decode_lossy(out)}\nstderr:\n")
+      s.write_string(@utf8.decode_lossy(err))
+      for file in files {
+        s.write_string("\n== \{file.0}\n\{@utf8.decode_lossy(file.1)}")
+      }
+      s.to_string()
+    }
+  }
+}
+
+///|
+async fn Oracle::run(
+  self : Oracle,
+  binary : String,
+  args : Array[String],
+  cwd : String,
+  color : Bool,
+  command? : String = "test",
+) -> (Int, Bytes, Bytes) {
+  let env = self.env.copy()
+  if color {
+    env["CLICOLOR_FORCE"] = "1"
+  }
+  let (program, argv) = if binary.has_suffix(".wasm") {
+    ("moonrun", [binary, "--", command, ..args])
+  } else {
+    (binary, [command, ..args])
+  }
+  let (code, out, err) = @async.with_timeout(60000, () => {
+    @process.collect_output(
+      program,
+      argv,
+      extra_env=env,
+      inherit_env=false,
+      cwd~,
+    )
+  })
+  (code, out.binary(), err.binary())
+}
+
+///|
+/// Runs `update` on a fresh copy of the document.
+async fn Oracle::run_update(
+  self : Oracle,
+  binary : String,
+  flags : Array[String],
+  name : String,
+  text : String,
+  work : String,
+  tag : String,
+  color : Bool,
+) -> Outcome {
+  let d = work + "/" + tag
+  rmtree(d)
+  @fs.mkdir(d)
+  @fs.write_file(d + "/" + name, text, create_mode=CreateOrTruncate)
+  let (code, out, err) = self.run(
+    binary,
+    [..flags, name],
+    d,
+    color,
+    command="update",
+  )
+  // Upstream logs errors with a timestamp.
+  let plain = strip_ansi(err)
+  let err = if plain != err && plain.find(b" ERROR scrut: ") is Some(_) {
+    plain
+  } else {
+    err
+  }
+  let err = strip_log_timestamps(err)
+  let files = []
+  for entry in sorted(@fs.readdir(d, include_hidden=true)) {
+    files.push((entry, @fs.read_file(d + "/" + entry).binary()))
+  }
+  Update(code, out, err, files)
+}
+
+///|
+/// Whether differing `update` results are upstream writing documents that
+/// fail (the port fixes that, see DIFFERENCES.md): each document upstream
+/// wrote fails upstream's `test`, each the port wrote passes the port's.
+async fn Oracle::upstream_update_bug(
+  self : Oracle,
+  work : String,
+  name : String,
+  text : String,
+  expected : Outcome,
+  actual : Outcome,
+) -> Bool {
+  guard expected is Update(expected_code, expected_out, _, expected_files) &&
+    actual is Update(actual_code, actual_out, _, actual_files) else {
+    return false
+  }
+  let source = @utf8.encode(text)
+  fn written(files : Array[(String, Bytes)]) -> Array[(String, Bytes)] {
+    files.filter(file => file.0 != name || file.1 != source)
+  }
+
+  let ours = written(actual_files)
+  let theirs = written(expected_files)
+  if ours.map(f => f.0) != theirs.map(f => f.0) ||
+    expected_code != actual_code ||
+    ours.is_empty() {
+    return false
+  }
+  // The one fix that also applies to conversions (whose results need not
+  // pass in either implementation): no `(no-eol)` after `(escaped)`.
+  let fixed = theirs
+    .zip(ours)
+    .iter()
+    .all(pair => {
+      replace_bytes(pair.0.1, b" (escaped) (no-eol)\n", b" (escaped)\n") ==
+      pair.1.1
+    })
+  if fixed && expected_out == actual_out {
+    return true
+  }
+  for
+    check in [
+      ("uu", self.upstream, theirs, false),
+      ("pp", self.port, ours, true),
+    ] {
+    let (tag, binary, files, should_pass) = check
+    let d = work + "/" + tag
+    rmtree(d)
+    @fs.mkdir(d)
+    let passed = []
+    for i, file in files {
+      let (k, v) = file
+      // A name the document parsers recognize.
+      let base = k.strip_suffix(".new").map(b => b.to_owned()).unwrap_or(k)
+      let base = base
+        .strip_suffix(".upd")
+        .map(b => b.to_owned())
+        .unwrap_or(base)
+      let doc = "check\{i}" + (if base.has_suffix(".t") { ".t" } else { ".md" })
+      @fs.write_file(d + "/" + doc, v, create_mode=CreateOrTruncate)
+      let (code, _, _) = self.run(binary, [doc], d, false)
+      passed.push(code == 0)
+    }
+    let all = passed.iter().all(p => p)
+    let any = passed.iter().any(p => p)
+    if should_pass != all || (!should_pass && any) {
+      return false
+    }
+  }
+  true
+}
+
+// Bytes and strings
+
+///|
+/// Removes the ANSI color sequences `\x1b\[[0-9;]*m`.
+fn strip_ansi(b : Bytes) -> Bytes {
+  let out : Array[Byte] = []
+  let mut i = 0
+  while i < b.length() {
+    if b[i] == b'\x1b' && i + 1 < b.length() && b[i + 1] == b'[' {
+      let mut j = i + 2
+      while j < b.length() && ((b[j] >= b'0' && b[j] <= b'9') || b[j] == b';') {
+        j += 1
+      }
+      if j < b.length() && b[j] == b'm' {
+        i = j + 1
+        continue
+      }
+    }
+    out.push(b[i])
+    i += 1
+  }
+  Bytes::from_array(out)
+}
+
+///|
+/// Removes the log prefixes `^\S+Z ERROR scrut: ` of each line.
+fn strip_log_timestamps(b : Bytes) -> Bytes {
+  let marker = b" ERROR scrut: "
+  let out : Array[Byte] = []
+  let mut line_start = 0
+  while line_start < b.length() {
+    let mut j = line_start
+    while j < b.length() && !is_ascii_space(b[j]) {
+      j += 1
+    }
+    let token = j - line_start
+    let start = if token >= 2 && b[j - 1] == b'Z' && b[j:].has_prefix(marker[:]) {
+      j + marker.length()
+    } else {
+      line_start
+    }
+    let end = match b[start:].find(b"\n") {
+      Some(k) => start + k + 1
+      None => b.length()
+    }
+    for k in start..<end {
+      out.push(b[k])
+    }
+    line_start = end
+  }
+  Bytes::from_array(out)
+}
+
+///|
+/// Python's `bytes.isspace()` for one byte (`\S` in a bytes regex).
+fn is_ascii_space(b : Byte) -> Bool {
+  b == b' ' || (b >= b'\t' && b <= b'\r')
+}
+
+///|
+fn replace_bytes(b : Bytes, old : Bytes, new : Bytes) -> Bytes {
+  let out : Array[Byte] = []
+  let mut i = 0
+  while i < b.length() {
+    if b[i:].has_prefix(old[:]) {
+      out.push_iter(new.iter())
+      i += old.length()
+    } else {
+      out.push(b[i])
+      i += 1
+    }
+  }
+  Bytes::from_array(out)
+}
+
+///|
+fn split_bytes(b : Bytes, sep : Byte) -> Array[BytesView] {
+  let out = []
+  let mut start = 0
+  for i in 0..<b.length() {
+    if b[i] == sep {
+      out.push(b[start:i])
+      start = i + 1
+    }
+  }
+  out.push(b[start:])
+  out
+}
+
+///|
+/// Sorted by code points (as Python sorts strings).
+fn sorted(names : Array[String]) -> Array[String] {
+  names.sort_by((a, b) => {
+    let a = a.to_array()
+    let b = b.to_array()
+    for i in 0..<a.length().min(b.length()) {
+      if a[i] != b[i] {
+        return a[i].compare(b[i])
+      }
+    }
+    a.length().compare(b.length())
+  })
+  names
+}
+
+///|
+/// A Python list literal of strings.
+fn py_list(xs : Array[String]) -> String {
+  "[" + xs.map(x => "'" + x + "'").join(", ") + "]"
+}
+
+// Files
+
+///|
+async fn rmtree(path : String) -> Unit {
+  if @fs.exists(path) {
+    @fs.rmdir(path, recursive=true) catch {
+      _ => ()
+    }
+  }
+}
+
+///|
+/// The repository root: the nearest directory containing
+/// `scripts/cli_oracle.mbtx`, from the script's build directory up, else from
+/// the working directory up.
+async fn find_root() -> String {
+  let starts = [parent(@env.args()[0])]
+  starts.push(@env.current_dir())
+  for start in starts {
+    let mut dir = start
+    while dir is Some(d) {
+      if exists(d + "/scripts/cli_oracle.mbtx") {
+        return d
+      }
+      dir = parent(d)
+    }
+  }
+  println("cli_oracle: can't find the repository (scripts/cli_oracle.mbtx)")
+  @sys.exit(2)
+  panic()
+}
+
+///|
+fn parent(path : String) -> String? {
+  let trimmed = path.trim_end(chars="/\\")
+  match trimmed.rev_find("/") {
+    Some(0) => Some("/")
+    Some(i) => Some(trimmed[:i].to_owned())
+    None => None
+  }
+}
+
+// Random numbers
+
+///|
+/// A deterministic random generator seeded with an integer.
+struct Rng(@random.Rand)
+
+///|
+fn Rng::new(seed : Int) -> Rng {
+  let bytes = Array::make(32, b'\x00')
+  for i in 0..<4 {
+    bytes[i] = ((seed >> (8 * i)) & 0xFF).to_byte()
+  }
+  Rng(@random.Rand::chacha8(seed=Bytes::from_array(bytes)))
+}
+
+///|
+/// A random number in [0, 1).
+fn Rng::random(self : Rng) -> Double {
+  self.0.double()
+}
+
+///|
+/// A random integer in [0, n).
+fn Rng::randrange(self : Rng, n : Int) -> Int {
+  self.0.int(limit=n)
+}
+
+///|
+/// A random integer in [lo, hi].
+fn Rng::randint(self : Rng, lo : Int, hi : Int) -> Int {
+  lo + self.0.int(limit=hi - lo + 1)
+}
+
+///|
+fn[T] Rng::choice(self : Rng, xs : Array[T]) -> T {
+  xs[self.0.int(limit=xs.length())]
+}
+
+///|
+/// Whether `path` exists (false when a parent is not a directory).
+async fn exists(path : String) -> Bool {
+  @fs.exists(path) catch {
+    _ => false
+  }
+}

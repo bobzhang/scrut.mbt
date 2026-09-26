@@ -228,12 +228,13 @@ the core engine cannot express is listed in DIFFERENCES.md.
    - the tokenizer against a model;
    - diff invariants (every output line is accounted for exactly once);
    - an escaping round trip.
-3. **Tokenizer oracle:** `python3 -c 'shlex.split(...)'` on random command
-   strings; must agree on accepted inputs.
-4. **CLI oracle:** the upstream binary (`.repos/scrut/target/release/scrut`,
-   built with Rust 1.97.1, with a local `build.rs` fix) runs generated
-   documents whose commands are shell-free (`printf`, `cat`, a test-helper
-   program).
+3. **Tokenizer oracle:** `scripts/argv_oracle.mbtx` asks bash how it splits
+   random command strings (in a fixed environment, from an empty directory);
+   the tokenizer must agree on the inputs it accepts.
+4. **CLI oracle:** `scripts/cli_oracle.mbtx` has the upstream binary
+   (`.repos/scrut/target/release/scrut`, built with Rust 1.97.1, with a local
+   `build.rs` fix) and the port run generated documents whose commands are
+   shell-free (`printf`, `cat`, a test-helper program).
    - Compared byte for byte: stdout of `test` under every renderer (after
      normalising temporary paths and timings), the exit code, and documents
      after `update`.
@@ -241,7 +242,7 @@ the core engine cannot express is listed in DIFFERENCES.md.
      quantifier, escapes, optional and multiline matches, wrong exit codes,
      CRLF, no-eol output, titles and comments, in both Markdown and Cram.
 5. **Selftests:** upstream's `selftest/` documents, after rewriting their
-   bash-only parts, run under the MoonBit CLI.
+   bash-only parts, run under the MoonBit CLI (`moonx scripts/selftest.mbtx`).
 6. **Windows:** CI on `windows-latest` runs the unit tests and the selftests
    that don't need Unix-only programs.
 

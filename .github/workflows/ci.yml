@@ -42,14 +42,7 @@ jobs:
         run: moon test --target native
 
       - name: Self-tests (scrut testing scrut)
-        shell: bash
-        run: sh scripts/selftest.sh
+        run: moonx scripts/selftest.mbtx
 
       - name: The wasm build (as moonx runs it)
-        shell: bash
-        run: |
-          moon build --target wasm --release
-          PATH="$PWD/_build/native/release/build/cmd/scrut-testbin:$PATH"
-          moonrun _build/wasm/release/build/cmd/scrut/scrut.wasm -- test \
-            tests/fixtures/pass.md tests/fixtures/variables.md \
-            tests/fixtures/grammar.md tests/fixtures/cram.t tests/moonx.md
+        run: moonx scripts/selftest.mbtx --wasm

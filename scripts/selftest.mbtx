@@ -1,0 +1,160 @@
+///|
+import {
+  "moonbitlang/async@0.22.4",
+  "moonbitlang/async@0.22.4/fs",
+  "moonbitlang/async@0.22.4/process",
+  "moonbitlang/core/env",
+  "moonbitlang/x@0.5.5/sys",
+}
+
+///|
+/// Build scrut and run its own tests (tests/*.md) with it; the built
+/// scrut.exe and scrut-testbin.exe are put first on PATH. Extra arguments
+/// are passed to `scrut test`; the exit code is scrut's.
+///
+///     moonx scripts/selftest.mbtx [--wasm] [scrut test args...]
+///
+/// `--wasm` runs the wasm build with `moonrun` instead (as `moonx` would),
+/// on the documents that don't run `scrut.exe` themselves.
+async fn main {
+  let args = @env.args()[1:].to_owned()
+  let wasm = args.contains("--wasm")
+  let extra = args.filter(a => a != "--wasm")
+  let windows = @async.platform is Windows
+  let sep = if windows { "\\" } else { "/" }
+  let root = find_root(sep)
+  run_or_exit("moon", ["build", "--target", "native", "--release"], root)
+  if wasm {
+    run_or_exit("moon", ["build", "--target", "wasm", "--release"], root)
+  }
+  let build = [root, "_build", "native", "release", "build", "cmd"].join(sep)
+  let bin_dirs = if wasm {
+    [build + sep + "scrut-testbin"]
+  } else {
+    [build + sep + "scrut", build + sep + "scrut-testbin"]
+  }
+  let env = with_path(bin_dirs, windows)
+  let (program, command) = if wasm {
+    let wasm_module = [
+      root, "_build", "wasm", "release", "build", "cmd", "scrut", "scrut.wasm",
+    ].join(sep)
+    ("moonrun", [wasm_module, "--", "test"])
+  } else {
+    // By path: Windows looks up programs on the parent's PATH.
+    (build + sep + "scrut" + sep + "scrut.exe", ["test"])
+  }
+  let docs = if wasm {
+    [
+      "tests/fixtures/pass.md", "tests/fixtures/variables.md", "tests/fixtures/grammar.md",
+      "tests/fixtures/cram.t", "tests/moonx.md",
+    ]
+  } else {
+    markdown_tests(root, sep)
+  }
+  let code = @process.run(
+    program,
+    [..command, ..docs, ..extra],
+    extra_env=env,
+    inherit_env=false,
+    cwd=root,
+  )
+  @sys.exit(code)
+}
+
+///|
+/// The sorted `tests/*.md` (relative to the root, as the shell glob was).
+async fn markdown_tests(root : String, sep : String) -> Array[String] {
+  let names = @fs.readdir(root + sep + "tests").filter(name => {
+    name.has_suffix(".md") && !name.has_prefix(".")
+  })
+  // By code points (`Array::compare` would put shorter names first).
+  names.sort_by((a, b) => {
+    let a = a.to_array()
+    let b = b.to_array()
+    for i in 0..<a.length().min(b.length()) {
+      if a[i] != b[i] {
+        return a[i].compare(b[i])
+      }
+    }
+    a.length().compare(b.length())
+  })
+  names.map(name => "tests/" + name)
+}
+
+///|
+/// The environment with `dirs` first on PATH (whatever the case of its name
+/// on Windows).
+fn with_path(dirs : Array[String], windows : Bool) -> Map[String, String] {
+  let env = @env.get_env_vars()
+  let mut key = "PATH"
+  for name, _ in env {
+    if windows && name.to_upper() == "PATH" {
+      key = name
+    }
+  }
+  let list_sep = if windows { ";" } else { ":" }
+  let path = match env.get(key) {
+    Some(old) if old != "" => dirs.join(list_sep) + list_sep + old
+    _ => dirs.join(list_sep)
+  }
+  env[key] = path
+  env
+}
+
+///|
+/// The repository root: the nearest directory containing
+/// `scripts/selftest.mbtx`, from the script's build directory up (moonx
+/// builds it under `scripts/_build`), else from the working directory up.
+async fn find_root(sep : String) -> String {
+  for start in [parent(@env.args()[0]), @env.current_dir()] {
+    let mut dir = start
+    while dir is Some(d) {
+      if exists(d + sep + "scripts" + sep + "selftest.mbtx") {
+        return d
+      }
+      dir = parent(d)
+    }
+  }
+  println("selftest: can't find the repository (scripts/selftest.mbtx)")
+  @sys.exit(2)
+  panic()
+}
+
+///|
+/// Whether `path` exists (false when a parent is not a directory).
+async fn exists(path : String) -> Bool {
+  @fs.exists(path) catch {
+    _ => false
+  }
+}
+
+///|
+fn parent(dir : String) -> String? {
+  let trimmed = dir.trim_end(chars="/\\").to_owned()
+  let mut i = trimmed.length() - 1
+  while i >= 0 {
+    if trimmed[i] == '/' || trimmed[i] == '\\' {
+      break
+    }
+    i -= 1
+  }
+  if i < 0 || trimmed == "" {
+    None
+  } else if i == 0 {
+    Some(trimmed[0:1].to_owned())
+  } else {
+    Some(trimmed[0:i].to_owned())
+  }
+}
+
+///|
+async fn run_or_exit(
+  program : String,
+  args : Array[String],
+  cwd : String,
+) -> Unit {
+  let code = @process.run(program, args, cwd~)
+  if code != 0 {
+    @sys.exit(code)
+  }
+}

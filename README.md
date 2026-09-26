@@ -94,8 +94,18 @@ oracle:
   - the diff algorithm;
   - document parsing;
   - globs, paths and UTF-8 errors.
-- `scripts/argv_oracle.py` checks the tokenizer against bash's word
+- `scripts/argv_oracle.mbtx` checks the tokenizer against bash's word
   splitting and expansion.
-- `scripts/cli_oracle.py` generates random shell-free documents and
+- `scripts/cli_oracle.mbtx` generates random shell-free documents and
   compares `scrut test` (every renderer) and `scrut update` with the
   upstream binary byte for byte.
+
+The tools other than `scripts/oracle` are MoonBit scripts, run with `moonx`:
+
+```sh
+moonx scripts/selftest.mbtx          # build, then run tests/*.md with scrut
+moonx scripts/selftest.mbtx --wasm   # the wasm build (moonrun), on some documents
+moonx scripts/argv_oracle.mbtx > argv/oracle_cases_test.mbt
+moon build --target native --release && moon build --target wasm --release
+moonx scripts/cli_oracle.mbtx --count 150 [--seed N] [--keep] [--wasm]
+```

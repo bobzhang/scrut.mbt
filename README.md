@@ -25,6 +25,14 @@ Hallo, * (glob+)
 
 ## Usage
 
+Run the published version without installing it:
+
+```
+moonx bobzhang/scrut/cmd/scrut test tests/
+```
+
+Or build it:
+
 ```
 moon build --target native --release
 _build/native/release/build/cmd/scrut/scrut.exe test tests/

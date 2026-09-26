@@ -4,6 +4,7 @@ import {
   "bobzhang/scrut/document",
   "bobzhang/scrut/exec",
   "bobzhang/scrut/render",
+  "bobzhang/scrut/generate",
   "moonbitlang/async",
   "moonbitlang/async/fs",
   "moonbitlang/x/sys",

@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/scrut/generate"
+
+import {
+  "bobzhang/scrut/render",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub let cram_indention : Int
+
+pub fn cram_testcases(Array[@render.Outcome]) -> String raise GenerateError
+
+pub fn generate_testcase(@render.Outcome) -> String raise GenerateError
+
+pub fn markdown_testcases(Array[@render.Outcome], String) -> String raise GenerateError
+
+pub fn update_cram(String, Array[@render.Outcome]) -> String raise GenerateError
+
+pub fn update_markdown(String, Array[@render.Outcome], Array[String]) -> String raise GenerateError
+
+// Errors
+pub(all) suberror GenerateError {
+  GenerateError(Array[String])
+} derive(@debug.Debug)
+
+// Types and methods
+
+// Type aliases
+
+// Traits

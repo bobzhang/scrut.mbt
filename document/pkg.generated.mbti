@@ -17,6 +17,8 @@ pub fn extract_title(String) -> String?
 
 pub fn is_comment(String) -> Bool
 
+pub fn markdown_tokens(Array[String], String) -> Array[MarkdownToken]
+
 pub fn parse_cram(String) -> Document raise ParseError
 
 pub fn parse_markdown(String, languages? : Array[String], cram_compat? : Bool) -> Document raise ParseError
@@ -35,6 +37,13 @@ pub impl Show for ParseError
 pub(all) struct Document {
   config : @config.DocumentConfig
   testcases : Array[TestCase]
+}
+
+pub(all) enum MarkdownToken {
+  Line(String)
+  DocumentConfigLines(Array[String])
+  TestCodeBlock(language~ : String, config_lines~ : Array[String], comment_lines~ : Array[String], code_lines~ : Array[(Int, String)])
+  VerbatimCodeBlock(starting_line~ : Int, language~ : String, lines~ : Array[String])
 }
 
 pub(all) enum ParserType {

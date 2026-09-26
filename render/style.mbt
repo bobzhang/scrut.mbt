@@ -157,3 +157,23 @@ pub fn Painter::blue(self : Painter, text : String) -> String {
 pub fn Painter::yellow(self : Painter, text : String) -> String {
   style(self.color).yellow().paint(text)
 }
+
+///|
+pub fn Painter::yellow_bold(self : Painter, text : String) -> String {
+  style(self.color).yellow().bold().paint(text)
+}
+
+///|
+pub fn Painter::magenta(self : Painter, text : String) -> String {
+  style(self.color).magenta().paint(text)
+}
+
+///|
+pub fn Painter::magenta_bold(self : Painter, text : String) -> String {
+  style(self.color).magenta().bold().paint(text)
+}
+
+///|
+pub fn Painter::underlined(self : Painter, text : String) -> String {
+  style(self.color).underlined().paint(text)
+}

@@ -136,20 +136,32 @@ fn rust_trim_end(s : String) -> String {
 }
 
 ///|
-priv enum MarkdownToken {
+/// A part of a Markdown document (upstream `MarkdownToken`).
+pub(all) enum MarkdownToken {
+  /// Any other line.
   Line(String)
+  /// The front matter's lines (between `---` lines).
   DocumentConfigLines(Array[String])
+  /// A test code block: its language, the `{...}` configuration on the
+  /// opening line, leading comment lines and the code (with line indices).
   TestCodeBlock(
+    language~ : String,
     config_lines~ : Array[String],
+    comment_lines~ : Array[String],
     code_lines~ : Array[(Int, String)]
   )
-  VerbatimCodeBlock(starting_line~ : Int, language~ : String)
+  /// Any other code block, with all its lines (backtick lines included).
+  VerbatimCodeBlock(
+    starting_line~ : Int,
+    language~ : String,
+    lines~ : Array[String]
+  )
 }
 
 ///|
 /// Split a Markdown document into the tokens upstream's iterator yields
 /// (an unterminated front matter or code block ends the document).
-fn markdown_tokens(
+pub fn markdown_tokens(
   languages : Array[String],
   text : String,
 ) -> Array[MarkdownToken] {
@@ -183,14 +195,19 @@ fn markdown_tokens(
     content_start = true
     if !languages.contains(language) {
       let start = i - 1
+      let block = [line]
       while i < lines.length() && !lines[i].has_prefix(backticks) {
+        block.push(lines[i])
         i += 1
       }
       if i >= lines.length() {
         break
       }
+      block.push(lines[i])
       i += 1
-      tokens.push(VerbatimCodeBlock(starting_line=start, language~))
+      tokens.push(
+        VerbatimCodeBlock(starting_line=start, language~, lines=block),
+      )
       continue
     }
     let config_lines = if config.has_prefix("{") &&
@@ -203,7 +220,9 @@ fn markdown_tokens(
     if i >= lines.length() {
       break
     }
+    let comment_lines = []
     while i < lines.length() && is_comment(lines[i]) {
+      comment_lines.push(lines[i])
       i += 1
     }
     let code_lines = []
@@ -215,7 +234,9 @@ fn markdown_tokens(
       break
     }
     i += 1
-    tokens.push(TestCodeBlock(config_lines~, code_lines~))
+    tokens.push(
+      TestCodeBlock(language~, config_lines~, comment_lines~, code_lines~),
+    )
   }
   tokens
 }
@@ -268,13 +289,13 @@ pub fn parse_markdown(
           }
           None => title_paragraph.clear()
         }
-      VerbatimCodeBlock(starting_line~, language~) =>
+      VerbatimCodeBlock(starting_line~, language~, ..) =>
         if language.is_empty() {
           raise ParseError(
             "Code block starting at line \{starting_line} is missing language specifier. Use ```scrut to make this block a Scrut test, or any other language to make Scrut skip this block.",
           )
         }
-      TestCodeBlock(config_lines~, code_lines~) => {
+      TestCodeBlock(config_lines~, code_lines~, ..) => {
         let parsed = if config_lines.is_empty() {
           @config.TestCaseConfig::empty()
         } else {

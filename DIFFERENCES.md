@@ -14,6 +14,7 @@ compare them. This file lists every intentional or known difference.
 - **Interpolation** (`interpolated: true`) resolves `$VAR` from the
   environment passed to the program, not from a shell's environment after
   execution.
+- **YAML renderer** (`--renderer yaml`) is not implemented yet.
 - **`shell` / `--shell`** are accepted but have no effect, and `TESTSHELL`
   is not set.
 - **Cram documents** (and any document with `--cram-compat`) run one process
@@ -40,6 +41,13 @@ compare them. This file lists every intentional or known difference.
   - Errors are printed as `Error: ...` without a log timestamp.
   - On a terminal, progress messages are printed line by line instead of
     with a progress bar.
+  - `update` asks before overwriting with a line-based `[y/N]` prompt.
+  - `create` joins its arguments with spaces, like upstream, and then
+    tokenizes the result without a shell. Quote the whole command to keep
+    its quoting.
+- **`exit` in a Cram script** only ends that test case's program. Upstream
+  runs the whole document as one script, so an `exit` there aborts the rest
+  with an error.
 
 ## Known (library limits)
 

@@ -29,7 +29,11 @@ pub fn path_join(String, String) -> String
 
 pub fn path_parent(String) -> String
 
+pub async fn run_create(CreateArgs, Terminal, async () -> String) -> Int
+
 pub async fn run_test(TestArgs, Terminal) -> Int
+
+pub async fn run_update(UpdateArgs, Terminal, async (String) -> Bool) -> Int
 
 pub let validation_failed_exit_code : Int
 
@@ -45,6 +49,15 @@ pub(all) suberror GlobError {
 pub impl Show for GlobError
 
 // Types and methods
+pub(all) struct CreateArgs {
+  command : Array[String]
+  format : @document.ParserType
+  output : String
+  title : String
+  global : GlobalArgs
+}
+pub fn CreateArgs::new(Array[String]) -> Self
+
 pub struct FileParser {
   match_markdown : Glob
   match_cram : Glob
@@ -111,6 +124,22 @@ pub(all) struct TestArgs {
   global : GlobalArgs
 }
 pub fn TestArgs::new(Array[String]) -> Self
+
+pub(all) struct UpdateArgs {
+  paths : Array[String]
+  markdown_languages : Array[String]
+  output_suffix : String
+  assume_yes : Bool
+  match_cram : String
+  match_markdown : String
+  replace : Bool
+  absolute_line_numbers : Bool
+  max_multiline_matched_lines : Int
+  convert : @document.ParserType?
+  verbose : Bool
+  global : GlobalArgs
+}
+pub fn UpdateArgs::new(Array[String]) -> Self
 
 // Type aliases
 

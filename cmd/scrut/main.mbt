@@ -122,6 +122,188 @@ fn test_command() -> @argparse.Command {
 }
 
 ///|
+fn update_command() -> @argparse.Command {
+  Command(
+    "update",
+    about="Re-run all testcases in given file(s) and update the output expectations",
+    flags=[
+      FlagArg("debug", hidden=true),
+      FlagArg(
+        "assume-yes",
+        short='y',
+        about="Overwrite existing files without asking (with --replace: the original documents).",
+      ),
+      FlagArg("overwrite-all", hidden=true),
+      FlagArg(
+        "replace",
+        short='r',
+        about="Replace the contents of the documents (see --output-suffix).",
+      ),
+      FlagArg(
+        "absolute-line-numbers",
+        about="Use line numbers of the test document instead of relative ones.",
+      ),
+      FlagArg(
+        "verbose",
+        about="Print information that is not a warning or error.",
+      ),
+    ],
+    options=[
+      OptionArg("markdown-languages", action=Append, hidden=true),
+      OptionArg(
+        "output-suffix",
+        short='o',
+        default_values=[".new"],
+        about="Suffix of the updated documents (existing files are overwritten).",
+      ),
+      OptionArg(
+        "match-cram",
+        default_values=[@app.default_match_cram],
+        about="Glob that identifies Cram documents.",
+      ),
+      OptionArg(
+        "match-markdown",
+        default_values=[@app.default_match_markdown],
+        about="Glob that identifies Markdown documents.",
+      ),
+      OptionArg(
+        "max-multiline-matched-lines",
+        default_values=[@render.default_multiline_matched_lines.to_string()],
+        about="Lines shown of multiline matches in failures.",
+      ),
+      OptionArg(
+        "convert",
+        short='c',
+        about="Convert documents to this format: markdown or cram (ignores --output-suffix).",
+      ),
+    ],
+    positionals=[
+      PositionArg(
+        "paths",
+        num_args=ValueRange(lower=1),
+        about="Test documents or directories",
+      ),
+    ],
+  )
+}
+
+///|
+fn create_command() -> @argparse.Command {
+  Command(
+    "create",
+    about="Create tests from provided shell expression",
+    options=[
+      OptionArg(
+        "format",
+        short='f',
+        default_values=["markdown"],
+        about="Test document format: markdown or cram.",
+      ),
+      OptionArg(
+        "output",
+        short='o',
+        default_values=["-"],
+        about="Where to write the test document (`-`: stdout).",
+      ),
+      OptionArg(
+        "title",
+        short='t',
+        default_values=["Command executes successfully"],
+        about="What the test is supposed to prove.",
+      ),
+    ],
+    positionals=[
+      PositionArg(
+        "shell_expression",
+        num_args=ValueRange(lower=1),
+        allow_hyphen_values=true,
+        about="Command THAT WILL BE EXECUTED to create a test from (`-`: read from stdin).",
+      ),
+    ],
+  )
+}
+
+///|
+fn parser_type(
+  name : String,
+  text : String,
+) -> @document.ParserType raise UsageError {
+  match text {
+    "markdown" => Markdown
+    "cram" => Cram
+    other =>
+      raise UsageError(
+        "invalid value '\{other}' for '--\{name} <\{name.to_upper()}>'\n  [possible values: markdown, cram]",
+      )
+  }
+}
+
+///|
+fn update_args(m : @argparse.Matches) -> @app.UpdateArgs raise UsageError {
+  let languages = values(m, "markdown-languages")
+  {
+    ..@app.UpdateArgs::new(values(m, "paths")),
+    markdown_languages: if languages.is_empty() {
+      @app.default_markdown_languages.iter().collect()
+    } else {
+      languages
+    },
+    output_suffix: value(m, "output-suffix").unwrap_or(".new"),
+    assume_yes: flag(m, "assume-yes") || flag(m, "overwrite-all"),
+    match_cram: value(m, "match-cram").unwrap_or(@app.default_match_cram),
+    match_markdown: value(m, "match-markdown").unwrap_or(
+      @app.default_match_markdown,
+    ),
+    replace: flag(m, "replace"),
+    absolute_line_numbers: flag(m, "absolute-line-numbers"),
+    max_multiline_matched_lines: match value(m, "max-multiline-matched-lines") {
+      Some(t) => parse_uint("max-multiline-matched-lines", t).to_int()
+      None => @render.default_multiline_matched_lines
+    },
+    convert: match value(m, "convert") {
+      Some(t) => Some(parser_type("convert", t))
+      None => None
+    },
+    verbose: flag(m, "verbose"),
+    global: global_args(m),
+  }
+}
+
+///|
+fn create_args(m : @argparse.Matches) -> @app.CreateArgs raise UsageError {
+  {
+    ..@app.CreateArgs::new(values(m, "shell_expression")),
+    format: parser_type("format", value(m, "format").unwrap_or("markdown")),
+    output: value(m, "output").unwrap_or("-"),
+    title: value(m, "title").unwrap_or("Command executes successfully"),
+    global: global_args(m),
+  }
+}
+
+///|
+/// Ask on the terminal whether to go ahead (default: no).
+async fn confirm(question : String) -> Bool {
+  if !@app.is_terminal(2) {
+    raise UsageError("IO error: not a terminal")
+  }
+  @stdio.stderr.write("\{question} [y/N] ")
+  let answer = @stdio.stdin.read_until("\n")
+  match answer {
+    Some(a) => {
+      let a = a.trim(chars=" \t\r").to_lower()
+      a == "y" || a == "yes"
+    }
+    None => false
+  }
+}
+
+///|
+async fn read_stdin() -> String {
+  let data = @stdio.stdin.read_all()
+  data.text()
+}
+
+///|
 fn root_command() -> @argparse.Command {
   Command(
     "scrut",
@@ -129,7 +311,7 @@ fn root_command() -> @argparse.Command {
     version=@lib.version,
     flags=global_flags(),
     options=global_options(),
-    subcommands=[test_command()],
+    subcommands=[create_command(), test_command(), update_command()],
     subcommand_required=true,
   )
 }
@@ -267,12 +449,19 @@ async fn main {
   let code = try {
     match matches.subcommand {
       Some(("test", sub)) => @app.run_test(test_args(sub), term)
+      Some(("update", sub)) => @app.run_update(update_args(sub), term, confirm)
+      Some(("create", sub)) =>
+        @app.run_create(create_args(sub), term, read_stdin)
       _ => {
         @stdio.stderr.write(root_command().render_help())
         2
       }
     }
   } catch {
+    UsageError("IO error: not a terminal" as msg) => {
+      @stdio.stderr.write("Error: \{msg}\n")
+      1
+    }
     UsageError(msg) => {
       @stdio.stderr.write(
         "error: \{msg}\n\nFor more information, try '--help'.\n",

@@ -48,10 +48,14 @@ pub fn Painter::blue(Self, String) -> String
 pub fn Painter::bold(Self, String) -> String
 pub fn Painter::green(Self, String) -> String
 pub fn Painter::green_bold(Self, String) -> String
+pub fn Painter::magenta(Self, String) -> String
+pub fn Painter::magenta_bold(Self, String) -> String
 pub fn Painter::new(Bool) -> Self
 pub fn Painter::red(Self, String) -> String
 pub fn Painter::red_bold(Self, String) -> String
+pub fn Painter::underlined(Self, String) -> String
 pub fn Painter::yellow(Self, String) -> String
+pub fn Painter::yellow_bold(Self, String) -> String
 
 pub(all) struct PrettyRenderer {
   color : Bool

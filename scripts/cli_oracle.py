@@ -210,14 +210,46 @@ def normalize(flags, stdout):
     return text
 
 
-def run(binary, args, cwd, color):
+def run(binary, args, cwd, color, command="test"):
     env = dict(os.environ)
     env.pop("CLICOLOR_FORCE", None)
     if color:
         env["CLICOLOR_FORCE"] = "1"
-    p = subprocess.run([binary, "test", *args], cwd=cwd, env=env,
+    p = subprocess.run([binary, command, *args], cwd=cwd, env=env,
                        capture_output=True, timeout=60)
-    return p.returncode, p.stdout
+    return p.returncode, p.stdout, p.stderr
+
+
+UPDATE_FLAG_SETS = [
+    [],
+    ["--replace", "-y"],
+    ["-e", "ascii"],
+    ["--convert", "cram"],
+    ["--convert", "markdown"],
+    ["-o", ".upd"],
+]
+
+
+def run_update(binary, flags, name, text, work, tag, color):
+    """Run `update` on a fresh copy; returns exit, stdout, stderr and the
+    files the update wrote."""
+    d = os.path.join(work, tag)
+    shutil.rmtree(d, ignore_errors=True)
+    os.makedirs(d)
+    with open(os.path.join(d, name), "w") as f:
+        f.write(text)
+    code, out, err = run(binary, [*flags, name], d, color, command="update")
+    import re
+    # Upstream logs errors with a timestamp.
+    plain = re.sub(rb"\x1b\[[0-9;]*m", b"", err)
+    if plain != err and b" ERROR scrut: " in plain:
+        err = plain
+    err = re.sub(rb"^\S+Z ERROR scrut: ", b"", err, flags=re.M)
+    files = {}
+    for entry in sorted(os.listdir(d)):
+        with open(os.path.join(d, entry), "rb") as f:
+            files[entry] = f.read()
+    return code, out, err, files
 
 
 def main():
@@ -235,20 +267,25 @@ def main():
         text = cram_document(rng) if cram else markdown_document(rng)
         with open(os.path.join(work, name), "w") as f:
             f.write(text)
-        flags = rng.choice(FLAG_SETS)
         color = rng.random() < 0.3
-        code, out = run(UPSTREAM, [*flags, name], work, color)
-        expected = (code, normalize(flags, out))
-        code, out = run(PORT, [*flags, name], work, color)
-        actual = (code, normalize(flags, out))
+        if rng.random() < 0.3:
+            flags = ["update"] + rng.choice(UPDATE_FLAG_SETS)
+            expected = run_update(UPSTREAM, flags[1:], name, text, work, "u", color)
+            actual = run_update(PORT, flags[1:], name, text, work, "p", color)
+        else:
+            flags = rng.choice(FLAG_SETS)
+            code, out, _ = run(UPSTREAM, [*flags, name], work, color)
+            expected = (code, normalize(flags, out))
+            code, out, _ = run(PORT, [*flags, name], work, color)
+            actual = (code, normalize(flags, out))
         if expected != actual:
             failures += 1
             print(f"MISMATCH {name} flags={flags} color={color}")
             if failures <= 3:
                 print("--- upstream (exit %d)" % expected[0])
-                print(expected[1])
+                print(*expected[1:], sep="\n")
                 print("--- port (exit %d)" % actual[0])
-                print(actual[1])
+                print(*actual[1:], sep="\n")
     print(f"{opts.count - failures}/{opts.count} documents agree (work dir {work})")
     if not opts.keep and failures == 0:
         shutil.rmtree(work)

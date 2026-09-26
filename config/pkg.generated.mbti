@@ -89,14 +89,17 @@ pub(all) struct TestCaseConfig {
 } derive(Eq, @debug.Debug)
 pub fn TestCaseConfig::default_cram() -> Self
 pub fn TestCaseConfig::default_markdown() -> Self
+pub fn TestCaseConfig::diff(Self, Self) -> Self
 pub fn TestCaseConfig::empty() -> Self
 pub fn TestCaseConfig::is_empty(Self) -> Bool
 pub fn TestCaseConfig::is_json_schema(Self) -> Bool
 pub fn TestCaseConfig::skip_document_code_or_default(Self) -> Int
 pub fn TestCaseConfig::to_json(Self) -> @text.JsonValue
+pub fn TestCaseConfig::to_yaml_one_liner(Self) -> String
 pub fn TestCaseConfig::with_defaults_from(Self, Self) -> Self
 pub fn TestCaseConfig::with_environment(Self, Array[(String, String)]) -> Self
 pub fn TestCaseConfig::with_overrides_from(Self, Self) -> Self
+pub fn TestCaseConfig::without_environment(Self, Array[(String, String)]) -> Self
 
 pub(all) enum TestMode {
   Output

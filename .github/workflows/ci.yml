@@ -38,6 +38,10 @@ jobs:
       - name: Check
         run: moon check --target native --deny-warn
 
+      - name: Check the scripts
+        shell: bash
+        run: for f in scripts/*.mbtx; do moon check --deny-warn "$f"; done
+
       - name: Unit and oracle tests
         run: moon test --target native
 

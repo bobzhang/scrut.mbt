@@ -325,3 +325,91 @@ let shell_builtins : ReadOnlyArray[String] = [
   "cd", "export", "unset", "source", ".", "alias", "set", "shopt", "trap", "exit",
   "read", "eval", "exec", "pushd", "popd", "type", "declare", "local",
 ]
+
+///|
+/// Start a detached test case's program: output discarded, not waited for.
+/// It runs in `group` and receives its kill signal when the group ends
+/// (the document is done); with `detached_kill_signal: disabled` it is left
+/// running.
+pub async fn[X] run_detached(
+  group : @async.TaskGroup[X],
+  tc : @document.TestCase,
+  context : Context,
+) -> Output {
+  let config = tc.config
+  let command = @argv.parse_command(tc.shell_expression) catch {
+    e =>
+      return start_failure(config, 2, "scrut: cannot run `\{tc.shell_expression}`: \{e}")
+  }
+  let env = process_environment(config, command.env)
+  let cwd = match config.cwd {
+    Some(sub) => join_path(context.work_directory, sub)
+    None => context.work_directory
+  }
+  let name = command.argv[0]
+  let program = match find_program(name, env, cwd) {
+    Found(p) => p
+    NotFound => return start_failure(config, 127, "\{name}: command not found")
+    NotExecutable(p) => return start_failure(config, 126, "\{p}: Permission denied")
+  }
+  let extra_env : Map[String, String] = Map([])
+  for e in env {
+    extra_env[e.0] = e.1
+  }
+  let args : Array[String] = command.argv[1:].iter().collect()
+  let null_device = if is_windows() { "NUL" } else { "/dev/null" }
+  let result = try {
+    let (in_r, in_w) = @process.write_to_process()
+    in_w.close()
+    let out = @process.redirect_to_file(null_device)
+    let err = @process.redirect_to_file(null_device)
+    match config.detached_kill_signal {
+      Some(Disabled) => {
+        ignore(
+          @process.spawn_orphan(
+            program,
+            args,
+            extra_env~,
+            inherit_env=false,
+            stdin=in_r,
+            stdout=out,
+            stderr=err,
+            cwd~,
+          ),
+        )
+      }
+      signal => {
+        let handler = match signal {
+          Some(Enabled("kill")) => @process.hard_cancel()
+          Some(Enabled("int")) =>
+            @process.graceful_cancel(timeout=2000, signal=SIGINT)
+          Some(Enabled("hup")) =>
+            @process.graceful_cancel(timeout=2000, signal=SIGHUP)
+          _ => @process.graceful_cancel(timeout=2000, signal=SIGTERM)
+        }
+        ignore(
+          @process.spawn(
+            group,
+            program,
+            args,
+            extra_env~,
+            inherit_env=false,
+            stdin=in_r,
+            stdout=out,
+            stderr=err,
+            cwd~,
+            cancel_handler=handler,
+            no_wait=true,
+          ),
+        )
+      }
+    }
+    None
+  } catch {
+    e => Some(e.to_string())
+  }
+  match result {
+    Some(msg) => start_failure(config, 126, "\{name}: \{msg}")
+    None => Output::new(Detached)
+  }
+}

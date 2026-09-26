@@ -19,6 +19,12 @@ pub fn Duration::from_secs(secs : UInt64) -> Duration {
 }
 
 ///|
+pub fn Duration::from_millis(ms : Int64) -> Duration {
+  let ms = ms.max(0L)
+  { secs: (ms / 1000L).reinterpret_as_uint64(), nanos: (ms % 1000L).to_int() * 1_000_000 }
+}
+
+///|
 /// Milliseconds, saturating.
 pub fn Duration::as_millis(self : Duration) -> Int64 {
   let max = 9223372036854775807UL

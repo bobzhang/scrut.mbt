@@ -229,6 +229,7 @@ FLAG_SETS = [
     ["--renderer", "pretty"],
     ["-r", "diff"],
     ["-r", "json"],
+    ["-r", "yaml"],
     ["-r", "junit"],
     ["-r", "junit", "-e", "ascii"],
 ]
@@ -260,6 +261,11 @@ def normalize(flags, stdout):
                 return [walk(x) for x in v]
             return v
         return repr(walk(data))
+    if "yaml" in flags:
+        text = re.sub(r"^ *(- )?(duration_ms|TESTSHELL): .*\n", "", text,
+                      flags=re.M)
+        text = re.sub(r"^( *(- )?(TMPDIR|CRAMTMP|TMP|TEMP)): .*$", r"\1: <tmp>",
+                      text, flags=re.M)
     if "junit" in flags:
         text = re.sub(r' timestamp="[^"]*"', ' timestamp="T"', text)
         text = re.sub(r' time="[^"]*"', ' time="t"', text)

@@ -4,4 +4,11 @@ import {
   "bobzhang/scrut/document",
   "bobzhang/scrut/exec",
   "bobzhang/scrut/rules",
+  "moonbitlang/core/bigint",
+  "moonbitlang/core/string",
 }
+
+import {
+  "bobzhang/scrut/render",
+  "bobzhang/scrut/text",
+} for "test"

@@ -16,7 +16,7 @@ Result: 3 document(s) with 6 testcase(s): 6 succeeded, 0 failed and 0 skipped
 ```scrut
 $ scrut.exe test "$TESTDIR/fixtures/fail.md"
 // =============================================================================
-// @ */tests/fixtures/fail.md:4 (glob)
+// @ *tests/fixtures/fail.md:4 (glob)
 // -----------------------------------------------------------------------------
 // # Failing tests
 // -----------------------------------------------------------------------------
@@ -28,7 +28,7 @@ $ scrut.exe test "$TESTDIR/fixtures/fail.md"
 
 
 // =============================================================================
-// @ */tests/fixtures/fail.md:9 (glob)
+// @ *tests/fixtures/fail.md:9 (glob)
 // -----------------------------------------------------------------------------
 // $ scrut-testbin.exe exit 3
 // =============================================================================
@@ -69,8 +69,8 @@ Caused by:
 
 ```scrut
 $ scrut.exe test --renderer diff "$TESTDIR/fixtures/fail.md"
---- */tests/fixtures/fail.md (glob)
-+++ */tests/fixtures/fail.md.new (glob)
+--- *tests/fixtures/fail.md (glob)
++++ *tests/fixtures/fail.md.new (glob)
 @@ -5 +5 @@ malformed output: Failing tests
 -hello
 +world

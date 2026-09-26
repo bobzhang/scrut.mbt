@@ -10,13 +10,17 @@ pub fn is_terminal(fd : Int) -> Bool {
 }
 
 ///|
+extern "C" fn scrut_enable_ansi(fd : Int) -> Int = "scrut_enable_ansi"
+
+///|
 /// Whether colors go to standard output: a terminal that is not `dumb`
 /// with `NO_COLOR` unset and `CLICOLOR` not `0`, or `CLICOLOR_FORCE` set
 /// to anything but `0`.
 pub fn colors_enabled(env : Map[String, String]) -> Bool {
   let supported = is_terminal(1) &&
     !env.contains("NO_COLOR") &&
-    env.get("TERM") != Some("dumb")
+    env.get("TERM") != Some("dumb") &&
+    scrut_enable_ansi(1) != 0
   (supported && env.get("CLICOLOR").unwrap_or("1") != "0") ||
   env.get("CLICOLOR_FORCE").unwrap_or("0") != "0"
 }

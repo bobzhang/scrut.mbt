@@ -5,6 +5,10 @@
 #include "moonbit.h"
 #ifdef _WIN32
 #include <io.h>
+#include <windows.h>
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
 #else
 #include <unistd.h>
 #endif
@@ -15,6 +19,24 @@ int scrut_isatty(int fd) {
   return _isatty(fd) ? 1 : 0;
 #else
   return isatty(fd) ? 1 : 0;
+#endif
+}
+
+// Whether ANSI escape sequences work on a terminal stream: on Windows the
+// console has to be switched to virtual terminal processing (as the
+// `console` crate does).
+int scrut_enable_ansi(int fd) {
+#ifdef _WIN32
+  HANDLE handle = GetStdHandle(fd == 2 ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
+  DWORD mode = 0;
+  if (handle == INVALID_HANDLE_VALUE || !GetConsoleMode(handle, &mode))
+    return 0;
+  if (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+    return 1;
+  return SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) ? 1 : 0;
+#else
+  (void)fd;
+  return 1;
 #endif
 }
 

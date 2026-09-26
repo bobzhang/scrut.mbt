@@ -13,6 +13,8 @@ pub let default_multiline_matched_lines : Int
 
 pub let default_surrounding_lines : Int
 
+pub fn json_to_yaml(@text.JsonValue) -> String
+
 pub fn render_diff(Array[Outcome]) -> String raise RenderError
 
 pub fn render_json(Array[Outcome]) -> String
@@ -20,6 +22,8 @@ pub fn render_json(Array[Outcome]) -> String
 pub fn render_junit(Array[Outcome], base_directory? : String, timestamp? : String, styled? : Bool) -> String
 
 pub fn render_pretty(PrettyRenderer, Array[Outcome], styled? : Bool) -> String
+
+pub fn render_yaml(Array[Outcome]) -> String
 
 pub fn strip_colors(String) -> String
 

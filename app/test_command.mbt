@@ -210,7 +210,7 @@ pub async fn run_test(args : TestArgs, term : Terminal) -> Int {
         @render.RenderError(msg) => raise AppError([msg])
       }
     Json => @render.render_json(outcomes)
-    Yaml => raise AppError(["renderer yaml is not implemented yet"])
+    Yaml => @render.render_yaml(outcomes)
     Junit =>
       @render.render_junit(
         outcomes,

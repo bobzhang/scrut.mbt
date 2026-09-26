@@ -17,7 +17,6 @@ compare them. This file lists every intentional or known difference.
 - **Interpolation** (`interpolated: true`) resolves `$VAR` from the
   environment passed to the program, not from a shell's environment after
   execution.
-- **YAML renderer** (`--renderer yaml`) is not implemented yet.
 - **`shell` / `--shell`** are accepted but have no effect, and `TESTSHELL`
   is not set.
 - **Cram documents** (and any document with `--cram-compat`) run one process

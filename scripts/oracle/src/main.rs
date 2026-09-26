@@ -4,6 +4,7 @@ mod rules;
 mod diff;
 mod parse;
 mod misc;
+mod yaml;
 
 use unicode_categories::UnicodeCategories;
 
@@ -67,6 +68,7 @@ fn main() {
         Some("diff") => diff::main(),
         Some("parse") => parse::main(),
         Some("misc") => misc::main(),
+        Some("yaml") => yaml::main(),
         other => panic!("unknown mode {other:?}"),
     }
 }

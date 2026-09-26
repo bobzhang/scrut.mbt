@@ -41,7 +41,9 @@ test "escaping matches upstream" {
       @text.Escaper::Unicode.has_unprintable(b),
     )
     if got != (pa, pu, ea, eu, ha, hu) {
-      failures.push("\{input}: want \{(pa, pu, ea, eu, ha, hu)}, got \{got}")
+      failures.push(
+        "\{input}: want \{Repr((pa, pu, ea, eu, ha, hu))}, got \{Repr(got)}",
+      )
     }
   }
   if failures.length() > 0 {

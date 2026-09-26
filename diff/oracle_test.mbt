@@ -24,7 +24,7 @@ test "diff matches upstream" {
     let expectations = exps.map(e => maker.parse(e))
     let got = @diff.diff(expectations, unhex(output)).debug_string()
     if got != want {
-      failures.push("\{exps} on \{output}:\nwant:\n\{want}\ngot:\n\{got}")
+      failures.push("\{Repr(exps)} on \{output}:\nwant:\n\{want}\ngot:\n\{got}")
     }
   }
   if failures.length() > 0 {

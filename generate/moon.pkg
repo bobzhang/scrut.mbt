@@ -2,7 +2,6 @@ import {
   "bobzhang/scrut/text",
   "bobzhang/scrut/config",
   "bobzhang/scrut/document",
-  "bobzhang/scrut/exec",
   "bobzhang/scrut/render",
   "bobzhang/scrut/rules",
 }
@@ -15,5 +14,4 @@ import {
   "bobzhang/scrut/config",
   "bobzhang/scrut/text",
   "moonbitlang/core/quickcheck",
-  "bobzhang/scrut/rules",
 } for "test"

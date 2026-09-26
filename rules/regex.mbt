@@ -98,25 +98,25 @@ pub fn escape_misused_repetition_quantifier(expression : String) -> String {
   // Upstream protects valid quantifiers as `<<<<n,m>>>>`, escapes all other
   // braces (skipping escaped characters), then restores the quantifiers.
   let chars = expression.to_array()
-  let protected = StringBuilder()
+  let shielded = StringBuilder()
   let mut i = 0
   while i < chars.length() {
     match valid_repetition(chars, i) {
       Some(end) => {
-        protected.write_string("<<<<")
+        shielded.write_string("<<<<")
         for k in (i + 1)..<(end - 1) {
-          protected.write_char(chars[k])
+          shielded.write_char(chars[k])
         }
-        protected.write_string(">>>>")
+        shielded.write_string(">>>>")
         i = end
       }
       None => {
-        protected.write_char(chars[i])
+        shielded.write_char(chars[i])
         i += 1
       }
     }
   }
-  let chars = protected.to_string().to_array()
+  let chars = shielded.to_string().to_array()
   let escaped = StringBuilder()
   let mut i = 0
   while i < chars.length() {
@@ -263,31 +263,6 @@ fn posix_class(name : String) -> String? {
     "graph" => Some("!-~")
     "ascii" => Some("\\u{0}-\\u{7f}")
     _ => None
-  }
-}
-
-///|
-fn is_regex_meta(c : Char) -> Bool {
-  match c {
-    '\\'
-    | '.'
-    | '+'
-    | '*'
-    | '?'
-    | '('
-    | ')'
-    | '|'
-    | '['
-    | ']'
-    | '{'
-    | '}'
-    | '^'
-    | '$'
-    | '-'
-    | '#'
-    | '&'
-    | '~' => true
-    _ => false
   }
 }
 

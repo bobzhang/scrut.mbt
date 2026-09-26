@@ -180,19 +180,15 @@ pub async fn run_test(args : TestArgs, term : Terminal) -> Int {
       append: prefix_with_directory(test_directory, doc.config.append),
       prepend: prefix_with_directory(test_directory, doc.config.prepend),
     }.with_overrides_from(document_config)
-    let env = TestEnvironment::new(
+    let result = with_test_environment(
       args.global.work_directory,
       args.global.keep_temporary_directories,
+      env => {
+        run_document(
+          args, parser, doc, config, testcase_config, env, outcomes, s, say,
+        )
+      },
     )
-    let result = run_document(
-      args, parser, doc, config, testcase_config, env, outcomes, s, say,
-    ) catch {
-      e => {
-        env.cleanup()
-        raise e
-      }
-    }
-    env.cleanup()
     count_failed += result
   }
   say("")

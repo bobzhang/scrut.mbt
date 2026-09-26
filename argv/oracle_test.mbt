@@ -13,9 +13,9 @@ test "accepted commands split like bash" {
     match bash {
       Some(words) =>
         if words != ours {
-          failures.push("\{Repr(cmd)}: bash \{words}, ours \{ours}")
+          failures.push("\{Repr(cmd)}: bash \{Repr(words)}, ours \{Repr(ours)}")
         }
-      None => failures.push("\{Repr(cmd)}: bash fails, ours \{ours}")
+      None => failures.push("\{Repr(cmd)}: bash fails, ours \{Repr(ours)}")
     }
   }
   if failures.length() > 0 {

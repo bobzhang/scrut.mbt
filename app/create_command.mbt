@@ -37,18 +37,11 @@ pub async fn run_create(
   } else {
     args.command.join(" ")
   }
-  let env = TestEnvironment::new(
+  with_test_environment(
     args.global.work_directory,
     args.global.keep_temporary_directories,
+    env => create_document(args, expression, env, term),
   )
-  let result = create_document(args, expression, env, term) catch {
-    e => {
-      env.cleanup()
-      raise e
-    }
-  }
-  env.cleanup()
-  result
 }
 
 ///|

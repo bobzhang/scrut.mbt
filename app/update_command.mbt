@@ -89,19 +89,15 @@ pub async fn run_update(
   let mut count_skipped = 0
   for doc in tests {
     let config = doc.config.with_overrides_from(document_config)
-    let env = TestEnvironment::new(
+    let result = with_test_environment(
       args.global.work_directory,
       args.global.keep_temporary_directories,
+      env => {
+        update_document(
+          args, doc, config, testcase_config, env, s, say, confirm, term,
+        )
+      },
     )
-    let result = update_document(
-      args, doc, config, testcase_config, env, s, say, confirm, term,
-    ) catch {
-      e => {
-        env.cleanup()
-        raise e
-      }
-    }
-    env.cleanup()
     match result {
       Updated => count_updated += 1
       Unchanged => count_unchanged += 1

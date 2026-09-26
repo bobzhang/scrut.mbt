@@ -437,8 +437,8 @@ async fn write_stderr(text : String) -> Unit {
 
 ///|
 async fn main {
-  let env = @sys.get_env_vars()
-  let argv = @sys.get_cli_args()
+  let env = @env.get_env_vars()
+  let argv = @env.args()
   let matches = root_command().parse(argv=argv[1:], env~)
   let term : @app.Terminal = {
     write_out: write_stdout,

@@ -3,7 +3,7 @@
 ///|
 /// (cram, line, result, [(hex output line, matches)])
 /// result: `ERR` or `kind|hex expression|optional|multiline|original|ascii|unicode`
-let rule_cases : Array[(Bool, String, String, Array[(String, Bool)])] = [
+let rule_cases_0 : Array[(Bool, String, String, Array[(String, Bool)])] = [
   (
     true,
     "\\0101 (unknown?) (esc)",
@@ -7990,6 +7990,10 @@ let rule_cases : Array[(Bool, String, String, Array[(String, Bool)])] = [
   ),
   (true, "\\x1b\\\\ ()", "ERR", []),
   (false, "(equal)[[]] ()", "ERR", []),
+]
+
+///|
+let rule_cases_1 : Array[(Bool, String, String, Array[(String, Bool)])] = [
   (
     false,
     "\\\\\\p{L}",
@@ -15995,6 +15999,10 @@ let rule_cases : Array[(Bool, String, String, Array[(String, Bool)])] = [
     ],
   ),
   (true, "**\\x (unknown) (esc)", "ERR", []),
+]
+
+///|
+let rule_cases_2 : Array[(Bool, String, String, Array[(String, Bool)])] = [
   (
     false,
     "(glob)",
@@ -24380,6 +24388,10 @@ let rule_cases : Array[(Bool, String, String, Array[(String, Bool)])] = [
       ("e292b60a", false),
     ],
   ),
+]
+
+///|
+let rule_cases_3 : Array[(Bool, String, String, Array[(String, Bool)])] = [
   (true, "\\\\ ()", "ERR", []),
   (
     false,
@@ -32727,6 +32739,10 @@ let rule_cases : Array[(Bool, String, String, Array[(String, Bool)])] = [
       ("e292b60a", false),
     ],
   ),
+]
+
+///|
+let rule_cases_4 : Array[(Bool, String, String, Array[(String, Bool)])] = [
   (
     false,
     "^ (+)",
@@ -40945,6 +40961,10 @@ let rule_cases : Array[(Bool, String, String, Array[(String, Bool)])] = [
       ("d9a30a", false),
     ],
   ),
+]
+
+///|
+let rule_cases_5 : Array[(Bool, String, String, Array[(String, Bool)])] = [
   (false, "\\* ()", "ERR", []),
   (false, "\\x (re)", "ERR", []),
   (
@@ -49070,4 +49090,10 @@ let rule_cases : Array[(Bool, String, String, Array[(String, Bool)])] = [
     ],
   ),
   (false, "[[]]\\?(foo|bar)é中文 ()", "ERR", []),
+]
+
+///|
+let rule_cases : Array[(Bool, String, String, Array[(String, Bool)])] = [
+  ..rule_cases_0, ..rule_cases_1, ..rule_cases_2, ..rule_cases_3, ..rule_cases_4,
+  ..rule_cases_5,
 ]

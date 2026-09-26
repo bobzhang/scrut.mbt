@@ -25,7 +25,7 @@ priv struct TestEnvironment {
 ///|
 /// The system's directory for temporary files (Rust's `env::temp_dir`).
 fn system_temp_dir() -> String {
-  let env = @sys.get_env_vars()
+  let env = @env.get_env_vars()
   let candidates = if @async.platform is Windows {
     ["TMP", "TEMP", "USERPROFILE"]
   } else {
@@ -151,6 +151,19 @@ async fn TestEnvironment::cleanup(self : TestEnvironment) -> Unit noraise {
       _ => ()
     }
   }
+}
+
+///|
+/// Run `f` in a new test environment, removed afterwards (also on errors and
+/// cancellation).
+async fn[T] with_test_environment(
+  work_directory : String?,
+  keep_temporary_directories : Bool,
+  f : async (TestEnvironment) -> T,
+) -> T {
+  let env = TestEnvironment::new(work_directory, keep_temporary_directories)
+  defer env.cleanup()
+  f(env)
 }
 
 ///|

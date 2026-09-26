@@ -163,8 +163,10 @@ fn LineParser::detect_json_schema_mode(self : LineParser) -> Unit {
     return
   }
   if !self.config_lines.is_empty() {
-    let parsed = try? parse_config_yaml(self.config_lines.join("\n"))
-    if parsed is Ok(c) && c.is_json_schema() {
+    let parsed = parse_config_yaml(self.config_lines.join("\n")) catch {
+      _ => @config.TestCaseConfig::empty()
+    }
+    if parsed.is_json_schema() {
       self.json_schema_mode = true
       return
     }

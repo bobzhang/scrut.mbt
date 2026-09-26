@@ -85,7 +85,7 @@ async fn find_program(
     let exts = env_get(env, "PATHEXT").unwrap_or(".COM;.EXE")
     let out = [base]
     for ext in exts.split(";") {
-      let ext = ext.to_string().to_lower()
+      let ext = ext.to_owned().to_lower()
       // Batch files need `cmd.exe`: not directly executable.
       if ext == "" || ext == ".bat" || ext == ".cmd" {
         continue
@@ -124,7 +124,7 @@ async fn find_program(
   }
   let mut not_executable : Lookup? = None
   for dir in env_get(env, "PATH").unwrap_or("").split(path_separator()) {
-    let dir = dir.to_string()
+    let dir = dir.to_owned()
     let dir = if dir.is_empty() { cwd } else { dir }
     for c in candidates(join_path(dir, name)) {
       match check(c) {
@@ -149,7 +149,7 @@ pub fn process_environment(
   assignments : Array[(String, String)],
 ) -> Array[(String, String)] {
   let env = []
-  for k, v in @sys.get_env_vars() {
+  for k, v in @env.get_env_vars() {
     env.push((k, v))
   }
   for e in config.environment {

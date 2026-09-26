@@ -262,17 +262,6 @@ pub fn markdown_testcases(
 }
 
 ///|
-/// Rust's `str::trim_end`.
-fn trim_end(s : String) -> String {
-  let chars = s.to_array()
-  let mut end = chars.length()
-  while end > 0 && is_whitespace(chars[end - 1]) {
-    end -= 1
-  }
-  String::from_array(chars[:end])
-}
-
-///|
 fn cram_indented(indent : String, from : String) -> String {
   if from.is_empty() {
     return ""

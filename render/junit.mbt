@@ -114,7 +114,7 @@ priv struct Case {
 ///|
 priv struct Suite {
   name : String
-  package : String?
+  package_name : String?
   properties : Array[(String, String)]
   testcases : Array[Case]
 }
@@ -325,14 +325,14 @@ pub fn render_junit(
       None =>
         suites.push({
           name,
-          package: package_of(name),
+          package_name: package_of(name),
           properties: [("scrut.format", outcome.format.to_string())],
           testcases: [case],
         })
     }
   }
   for suite in suites {
-    let taken : Set[String] = Set::new()
+    let taken : Set[String] = Set([])
     for case in suite.testcases {
       if !taken.contains(case.name) {
         taken.add(case.name)
@@ -355,7 +355,7 @@ pub fn render_junit(
   w.start("testsuites", counts(all_cases))
   for suite in suites {
     let attrs = [("name", suite.name)]
-    if suite.package is Some(p) {
+    if suite.package_name is Some(p) {
       attrs.push(("package", p))
     }
     if timestamp is Some(t) {

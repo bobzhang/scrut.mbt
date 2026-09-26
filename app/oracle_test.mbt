@@ -6,10 +6,14 @@ test "globs match like globset" {
   let failures = []
   for case in glob_cases {
     let (pattern, compiles, paths) = case
-    let glob = try? @app.Glob::new(pattern)
+    let glob = try @app.Glob::new(pattern) catch {
+      _ => None
+    } noraise {
+      g => Some(g)
+    }
     match glob {
-      Err(_) => if compiles { failures.push("\{pattern}: want compiled") }
-      Ok(g) => {
+      None => if compiles { failures.push("\{pattern}: want compiled") }
+      Some(g) => {
         if !compiles {
           failures.push("\{pattern}: want error")
           continue
@@ -42,7 +46,9 @@ test "paths behave like std::path" {
       @app.path_extension(path).unwrap_or("<none>"),
     )
     if got != (parent, name, stem, ext) {
-      failures.push("\{path}: want \{(parent, name, stem, ext)}, got \{got}")
+      failures.push(
+        "\{path}: want \{Repr((parent, name, stem, ext))}, got \{Repr(got)}",
+      )
     }
   }
   if !failures.is_empty() {

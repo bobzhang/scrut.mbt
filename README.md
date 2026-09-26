@@ -84,6 +84,8 @@ oracle:
   tables for:
   - escaping and ANSI stripping;
   - expectation rules;
+  - the Unicode tables of the regex compiler, and its character classes
+    and whole patterns, against the regex crate;
   - the diff algorithm;
   - document parsing;
   - globs, paths and UTF-8 errors.

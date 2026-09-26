@@ -1543,6 +1543,7 @@ version = "0.1.0"
 dependencies = [
  "globset",
  "regex",
+ "regex-syntax",
  "scrut",
  "serde",
  "serde_json",

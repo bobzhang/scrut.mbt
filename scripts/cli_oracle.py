@@ -171,7 +171,43 @@ FLAG_SETS = [
     ["--combine-output"],
     ["--cram-compat"],
     ["--renderer", "pretty"],
+    ["-r", "diff"],
+    ["-r", "json"],
+    ["-r", "junit"],
+    ["-r", "junit", "-e", "ascii"],
 ]
+
+
+def normalize(flags, stdout):
+    """Remove what legitimately differs between runs: timings, temporary
+    paths, the timestamp and upstream's TESTSHELL."""
+    import json
+    import re
+    text = stdout.decode("utf-8", "replace")
+    if "json" in flags:
+        try:
+            data = json.loads(text, object_pairs_hook=lambda pairs: pairs)
+        except ValueError:
+            return text
+
+        def walk(v):
+            if isinstance(v, list) and all(isinstance(p, tuple) for p in v) and v:
+                out = []
+                for k, x in v:
+                    if k == "duration_ms" or k == "TESTSHELL":
+                        continue
+                    if k in ("TMPDIR", "CRAMTMP", "TMP", "TEMP"):
+                        x = "<tmp>"
+                    out.append((k, walk(x)))
+                return out
+            if isinstance(v, list):
+                return [walk(x) for x in v]
+            return v
+        return repr(walk(data))
+    if "junit" in flags:
+        text = re.sub(r' timestamp="[^"]*"', ' timestamp="T"', text)
+        text = re.sub(r' time="[^"]*"', ' time="t"', text)
+    return text
 
 
 def run(binary, args, cwd, color):
@@ -201,16 +237,18 @@ def main():
             f.write(text)
         flags = rng.choice(FLAG_SETS)
         color = rng.random() < 0.3
-        expected = run(UPSTREAM, [*flags, name], work, color)
-        actual = run(PORT, [*flags, name], work, color)
+        code, out = run(UPSTREAM, [*flags, name], work, color)
+        expected = (code, normalize(flags, out))
+        code, out = run(PORT, [*flags, name], work, color)
+        actual = (code, normalize(flags, out))
         if expected != actual:
             failures += 1
             print(f"MISMATCH {name} flags={flags} color={color}")
             if failures <= 3:
                 print("--- upstream (exit %d)" % expected[0])
-                print(expected[1].decode("utf-8", "replace"))
+                print(expected[1])
                 print("--- port (exit %d)" % actual[0])
-                print(actual[1].decode("utf-8", "replace"))
+                print(actual[1])
     print(f"{opts.count - failures}/{opts.count} documents agree (work dir {work})")
     if not opts.keep and failures == 0:
         shutil.rmtree(work)

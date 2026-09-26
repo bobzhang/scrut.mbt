@@ -28,6 +28,8 @@ pub fn lossy_string(BytesView) -> String
 
 pub fn replace_crlf(BytesView) -> Bytes
 
+pub fn rust_utf8_error(BytesView) -> String?
+
 pub fn split_at_newline(BytesView) -> Array[BytesView]
 
 pub fn strip_ansi(BytesView) -> Bytes

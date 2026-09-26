@@ -6,8 +6,10 @@ import {
   "bobzhang/scrut/render",
   "moonbitlang/async",
   "moonbitlang/async/fs",
+  "moonbitlang/x/sys",
+  "moonbitlang/core/random",
 }
 
 options(
-  "native-stub": [ "tty.c" ],
+  "native-stub": [ "stubs.c" ],
 )

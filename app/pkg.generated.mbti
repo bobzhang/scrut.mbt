@@ -21,6 +21,8 @@ pub let default_match_markdown : String
 
 pub fn is_terminal(Int) -> Bool
 
+pub fn local_timestamp() -> String
+
 pub fn path_file_name(String) -> String
 
 pub fn path_join(String, String) -> String

@@ -235,7 +235,7 @@ fn env_insert(
       env[i] = (key, value)
       return
     }
-    if e.0 > key {
+    if @text.compare_utf8(e.0, key) > 0 {
       env.insert(i, (key, value))
       return
     }

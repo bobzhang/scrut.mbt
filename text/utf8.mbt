@@ -81,3 +81,73 @@ pub fn utf8_segments(data : BytesView) -> Array[(Int, String, Int)] {
   close(start, data.length())
   out
 }
+
+///|
+/// Rust's `Utf8Error` message for invalid UTF-8 (`None` when valid).
+pub fn rust_utf8_error(data : BytesView) -> String? {
+  let n = data.length()
+  let mut i = 0
+  let in_range = (k : Int, lo : Int, hi : Int) => {
+    k < n && data[k].to_int() >= lo && data[k].to_int() <= hi
+  }
+  let cont = (k : Int) => in_range(k, 0x80, 0xBF)
+  while i < n {
+    let b0 = data[i].to_int()
+    let width = if b0 < 0x80 {
+      1
+    } else if b0 >= 0xC2 && b0 <= 0xDF {
+      2
+    } else if b0 >= 0xE0 && b0 <= 0xEF {
+      3
+    } else if b0 >= 0xF0 && b0 <= 0xF4 {
+      4
+    } else {
+      0
+    }
+    // Length of the invalid sequence (`None`: input ends inside it).
+    let error_len : Int?? = match width {
+      0 => Some(Some(1))
+      1 => None
+      2 =>
+        if i + 1 >= n {
+          Some(None)
+        } else if !cont(i + 1) {
+          Some(Some(1))
+        } else {
+          None
+        }
+      _ => {
+        let (lo, hi) = match (width, b0) {
+          (3, 0xE0) => (0xA0, 0xBF)
+          (3, 0xED) => (0x80, 0x9F)
+          (4, 0xF0) => (0x90, 0xBF)
+          (4, 0xF4) => (0x80, 0x8F)
+          _ => (0x80, 0xBF)
+        }
+        if i + 1 >= n {
+          Some(None)
+        } else if !in_range(i + 1, lo, hi) {
+          Some(Some(1))
+        } else if i + 2 >= n {
+          Some(None)
+        } else if !cont(i + 2) {
+          Some(Some(2))
+        } else if width == 4 && i + 3 >= n {
+          Some(None)
+        } else if width == 4 && !cont(i + 3) {
+          Some(Some(3))
+        } else {
+          None
+        }
+      }
+    }
+    match error_len {
+      Some(Some(len)) =>
+        return Some("invalid utf-8 sequence of \{len} bytes from index \{i}")
+      Some(None) =>
+        return Some("incomplete utf-8 byte sequence from index \{i}")
+      None => i += width
+    }
+  }
+  None
+}

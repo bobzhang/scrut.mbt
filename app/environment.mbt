@@ -23,13 +23,54 @@ priv struct TestEnvironment {
 }
 
 ///|
+/// The system's directory for temporary files (Rust's `env::temp_dir`).
+fn system_temp_dir() -> String {
+  let env = @sys.get_env_vars()
+  let candidates = if @async.platform is Windows {
+    ["TMP", "TEMP", "USERPROFILE"]
+  } else {
+    ["TMPDIR"]
+  }
+  for name in candidates {
+    if env.get(name) is Some(dir) && !dir.is_empty() {
+      return dir
+    }
+  }
+  if @async.platform is Windows {
+    "C:\\Windows\\Temp"
+  } else {
+    "/tmp"
+  }
+}
+
+///|
+let temp_name_chars : String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+///|
+/// Create a new directory `<prefix>XXXXXX` in `parent` (like the
+/// `tempfile` crate).
 async fn make_temp_dir(parent : String, prefix : String) -> String {
-  for attempt in 0..<1000 {
-    let suffix = (@async.now() * 7919L + attempt.to_int64()) % 0xFFFFFFL
-    let path = path_join(parent, "\{prefix}\{suffix.to_string(radix=16)}")
-    let exists = @fs.exists(path)
-    if !exists {
+  let rng = @random.Rand::new()
+  for _ in 0..<1000 {
+    let name = StringBuilder()
+    name.write_string(prefix)
+    for _ in 0..<6 {
+      name.write_char(temp_name_chars.get_char(rng.int(limit=62)).unwrap())
+    }
+    let path = path_join(parent, name.to_string())
+    let created = try {
       @fs.mkdir(path, permission=0o700)
+      true
+    } catch {
+      _ => {
+        let exists = @fs.exists(path) catch { _ => false }
+        if !exists {
+          raise AppError(["create temporary directory \{path}"])
+        }
+        false
+      }
+    }
+    if created {
       return path
     }
   }
@@ -43,10 +84,10 @@ async fn TestEnvironment::new(
 ) -> TestEnvironment {
   let names = Map([])
   if keep_temporary_directories {
-    let work = @fs.tmpdir(prefix="execution") catch {
+    let work = make_temp_dir(system_temp_dir(), "execution.") catch {
       e => raise AppError(["create temporary working directory", "\{e}"])
     }
-    let tmp = @fs.tmpdir(prefix="temp") catch {
+    let tmp = make_temp_dir(system_temp_dir(), "temp.") catch {
       e => raise AppError(["create temporary working directory", "\{e}"])
     }
     return {
@@ -75,7 +116,7 @@ async fn TestEnvironment::new(
       }
     }
     None => {
-      let work = @fs.tmpdir(prefix="execution") catch {
+      let work = make_temp_dir(system_temp_dir(), "execution.") catch {
         e => raise AppError(["create temporary working directory", "\{e}"])
       }
       let tmp = path_join(work, "__tmp")

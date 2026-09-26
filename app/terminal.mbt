@@ -20,3 +20,19 @@ pub fn colors_enabled(env : Map[String, String]) -> Bool {
   (supported && env.get("CLICOLOR").unwrap_or("1") != "0") ||
   env.get("CLICOLOR_FORCE").unwrap_or("0") != "0"
 }
+
+///|
+#borrow(out)
+extern "C" fn scrut_local_timestamp(out : FixedArray[Byte]) -> Int = "scrut_local_timestamp"
+
+///|
+/// The current local time as `YYYY-MM-DDTHH:MM:SS`.
+pub fn local_timestamp() -> String {
+  let buf = FixedArray::make(20, b'\x00')
+  let len = scrut_local_timestamp(buf)
+  let s = StringBuilder()
+  for i in 0..<len {
+    s.write_char(buf[i].to_char())
+  }
+  s.to_string()
+}

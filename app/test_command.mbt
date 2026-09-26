@@ -205,12 +205,19 @@ pub async fn run_test(args : TestArgs, term : Terminal) -> Int {
       )
       @render.render_pretty(renderer, outcomes, styled=term.colors)
     }
-    Diff | Json | Yaml | Junit => {
-      ignore(current)
-      raise AppError([
-        "renderer \{to_repr(args.renderer)} is not implemented yet",
-      ])
-    }
+    Diff =>
+      @render.render_diff(outcomes) catch {
+        @render.RenderError(msg) => raise AppError([msg])
+      }
+    Json => @render.render_json(outcomes)
+    Yaml => raise AppError(["renderer yaml is not implemented yet"])
+    Junit =>
+      @render.render_junit(
+        outcomes,
+        base_directory=current,
+        timestamp=local_timestamp(),
+        styled=term.colors,
+      )
   }
   (term.write_out)(rendered)
   if count_failed > 0 {

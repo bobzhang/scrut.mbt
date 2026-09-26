@@ -118,6 +118,14 @@ pub async fn execute_script(
   context : Context,
 ) -> ExecutionResult {
   let shared = compile_config(testcases)
+  if shared.detached is Some(true) {
+    // Upstream runs the whole script detached and finds no results.
+    raise ExecutionError(
+      "aborted executions with exit code=detached: expected \{testcases.length()} execution result(s) but found 0\n" +
+      Output::new(Detached).to_error_string(Unicode) +
+      "\n",
+    )
+  }
   let total_timeout = context.config.total_timeout.unwrap_or(
     default_total_timeout,
   )

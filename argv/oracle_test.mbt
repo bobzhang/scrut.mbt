@@ -4,7 +4,7 @@ test "accepted commands split like bash" {
   let mut accepted = 0
   for c in argv_cases {
     let (cmd, bash) = c
-    let ours = try @argv.tokenize(cmd) catch {
+    let ours = try @argv.tokenize(cmd, env=argv_env) catch {
       _ => continue
     } noraise {
       w => w

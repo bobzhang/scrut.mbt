@@ -133,7 +133,7 @@ def special_testcase(rng):
     """Test cases exercising execution configuration: (config, command
     lines, expectations, exit code)."""
     kind = rng.choice(["timeout", "env", "stderr", "interpolate", "detached",
-                       "wait", "continuation", "skip", "exit"])
+                       "wait", "continuation", "skip", "exit", "variables"])
     if kind == "timeout":
         return ["timeout: 200ms"], [f"{SLEEP} 2"], [], 0
     # A variable per test case: upstream's shell state would carry one test
@@ -157,6 +157,13 @@ def special_testcase(rng):
         return ["wait: 50ms"], [f"{PRINTF} 'waited\\n'"], ["waited"], 0
     if kind == "continuation":
         return [], [f"{PRINTF} \\", "'%s\\n' a b"], ["a", "b"], 0
+    if kind == "variables":
+        # Expansion in double quotes (the temporary directory is empty).
+        return [f'environment: {{{var}: "v a l"}}'], \
+            [rng.choice([f'{PRINTF} "[%s]\\n" "$TESTFILE" "${{{var}}}x" "$UNSET"',
+                         '/bin/ls "$TMPDIR"',
+                         f'{var}="$TESTFILE" {PRINTENV} {var}'])], \
+            rng.choice([[], ["[doc0.md]"], ["x"]]), 0
     if kind == "skip":
         return ["skip_document_code: 9"], [f"{SH} -c 'exit 9'"], [], 0
     return [], [f"{SH} -c 'exit 5'"], [], rng.choice([5, 0])

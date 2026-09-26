@@ -23,6 +23,18 @@ These override the sections below where they differ.
      backslash-newline are escapes; `\x` for any other `x` keeps the
      backslash, as in bash. Outside quotes, `\x` is `x`, and a
      backslash-newline disappears.
+   - **Variables** (decided later, Codex review): `$NAME` and `${NAME}`
+     inside double quotes, and nowhere else. Names are
+     `[A-Za-z_][A-Za-z0-9_]*`, longest match. They are looked up in the
+     environment before the command's own assignments (bash expands
+     arguments first). Unset names give the empty string. The value is
+     inserted literally: no splitting, globbing or re-parsing.
+     - Rejected: every other `$` form (unquoted `$NAME`, `$1`, `$?`,
+       `${X:-y}`, `${#X}`, a bare `$`) and variables bash manages itself
+       (`RANDOM`, `PWD`, `SECONDS`, `BASH*`, …).
+     - An assignment value may use variables, but not one assigned earlier
+       in the same command, since bash versions disagree there.
+     - `$HOME` is an ordinary variable. Tilde expansion stays rejected.
    - **Rejected unquoted:**
      - operators: `| & ; < > ( )`;
      - backticks and `$` (anywhere, including `$'…'` and `$"…"`);
@@ -30,7 +42,8 @@ These override the sections below where they differ.
      - braces `{ }`;
      - `~` at the start of a word;
      - `#` at the start of a word.
-   - **Rejected inside double quotes:** `$` and backticks, unless escaped.
+   - **Rejected inside double quotes:** backticks and `$` forms other than
+     `$NAME`/`${NAME}`, unless escaped.
    - **Newlines.** A newline outside quotes must follow a backslash (a
      continuation line). Otherwise it's an error ("one command per test
      case").

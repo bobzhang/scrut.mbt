@@ -39,7 +39,7 @@ test "commands" {
   inspect(
     show("echo $HOME"),
     content=(
-      #|error: variable expansion (`$`) is not supported; use the `environment` configuration (quote '$' to pass it literally)
+      #|error: unquoted `$` is not supported; write "$NAME" (in double quotes) to use a variable (quote '$' to pass it literally)
     ),
   )
   inspect(
@@ -61,4 +61,65 @@ test "commands" {
     content="error: redirections (`<`) are not supported; use the `stdin` configuration for input (quote '<' to pass it literally)",
   )
   inspect(show("echo 'unterminated"), content="error: unmatched single quote")
+}
+
+///|
+fn show_env(cmd : String) -> String {
+  let env = [("TESTDIR", "/t d"), ("FOO", "a b"), ("EMPTY", "")]
+  try @argv.parse_command(cmd, env~) catch {
+    e => "error: \{e}"
+  } noraise {
+    c => "env=\{Repr(c.env)} argv=\{Repr(c.argv)}"
+  }
+}
+
+///|
+test "variables in double quotes" {
+  inspect(
+    show_env("tool \"$TESTDIR/in.json\" \"${FOO}x\" \"$FOO_x\" \"$EMPTY\""),
+    content=(
+      #|env=[] argv=["tool", "/t d/in.json", "a bx", "", ""]
+    ),
+  )
+  // Assignments see the environment before the command.
+  inspect(
+    show_env("OUT=\"$TESTDIR/out\" FOO=new tool \"$FOO\""),
+    content=(
+      #|env=[("OUT", "/t d/out"), ("FOO", "new")] argv=["tool", "a b"]
+    ),
+  )
+  inspect(
+    show_env("X=1 Y=\"$X\" tool"),
+    content=(
+      #|error: `$X` refers to `X` assigned earlier in the same command; use the `environment` configuration
+    ),
+  )
+  inspect(
+    show_env("tool $FOO"),
+    content=(
+      #|error: unquoted `$` is not supported; write "$NAME" (in double quotes) to use a variable (quote '$' to pass it literally)
+    ),
+  )
+  inspect(
+    show_env("tool \"$1\""),
+    content=(
+      #|error: `$1` is not supported: only $NAME and ${NAME} are supported (write \$ for a literal `$`)
+    ),
+  )
+  inspect(
+    show_env("tool \"${FOO:-x}\""),
+    content=(
+      #|error: `${FOO:-x}` is not supported: only $NAME and ${NAME} are supported
+    ),
+  )
+  inspect(
+    show_env("tool \"$RANDOM\""),
+    content="error: `$RANDOM` is not supported: bash manages `RANDOM` itself",
+  )
+  inspect(
+    show_env("tool \"\\$FOO\" '$FOO'"),
+    content=(
+      #|env=[] argv=["tool", "$FOO", "$FOO"]
+    ),
+  )
 }

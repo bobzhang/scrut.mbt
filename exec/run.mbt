@@ -193,7 +193,10 @@ fn start_failure(
 /// output.
 pub async fn run_testcase(tc : @document.TestCase, context : Context) -> Output {
   let config = tc.config
-  let command = @argv.parse_command(tc.shell_expression) catch {
+  let command = @argv.parse_command(
+    tc.shell_expression,
+    env=process_environment(config, []),
+  ) catch {
     e =>
       return start_failure(
         config,
@@ -337,7 +340,10 @@ pub async fn[X] run_detached(
   context : Context,
 ) -> Output {
   let config = tc.config
-  let command = @argv.parse_command(tc.shell_expression) catch {
+  let command = @argv.parse_command(
+    tc.shell_expression,
+    env=process_environment(config, []),
+  ) catch {
     e =>
       return start_failure(
         config,

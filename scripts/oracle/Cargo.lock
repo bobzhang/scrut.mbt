@@ -1543,6 +1543,7 @@ version = "0.1.0"
 dependencies = [
  "regex",
  "scrut",
+ "serde_json",
  "strip-ansi-escapes",
  "unicode_categories",
  "wildmatch",

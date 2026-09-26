@@ -310,6 +310,11 @@ def upstream_update_bug(work, name, text, expected, actual):
     ours, theirs = written(actual), written(expected)
     if ours.keys() != theirs.keys() or expected[0] != actual[0] or not ours:
         return False
+    # The one fix that also applies to conversions (whose results need not
+    # pass in either implementation): no `(no-eol)` after `(escaped)`.
+    if all(theirs[k].replace(b" (escaped) (no-eol)\n", b" (escaped)\n") == ours[k]
+           for k in ours) and expected[1] == actual[1]:
+        return True
     for tag, binary, files, should_pass in (("uu", UPSTREAM, theirs, False),
                                             ("pp", PORT, ours, True)):
         d = os.path.join(work, tag)

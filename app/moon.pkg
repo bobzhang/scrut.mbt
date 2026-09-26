@@ -15,6 +15,7 @@ import {
 import {
   "bobzhang/scrut/app",
   "bobzhang/scrut/text",
+  "moonbitlang/async",
 } for "test"
 
 options(

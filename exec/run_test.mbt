@@ -29,8 +29,11 @@ fn show(o : @exec.Output) -> String {
 }
 
 ///|
-#cfg(all(target="native", not(platform="windows")))
+/// Uses Unix programs (`sh`, `printf`, `cat`).
 async test "run programs directly" {
+  if @async.platform is Windows {
+    return
+  }
   inspect(
     show(@exec.run_testcase(tc("printf 'a b\\n'"), ctx())),
     content="exit=0 out=\"a b\\n\" err=\"\"",

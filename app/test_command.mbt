@@ -174,7 +174,7 @@ pub async fn run_test(args : TestArgs, term : Terminal) -> Int {
   }
   say("🔎 Found \{s.bold(tests.length().to_string())} test document(s)")
   for doc in tests {
-    let test_directory = path_parent(doc.path)
+    let test_directory = path_parent(doc.path).unwrap_or(current)
     let config = {
       ..doc.config,
       append: prefix_with_directory(test_directory, doc.config.append),

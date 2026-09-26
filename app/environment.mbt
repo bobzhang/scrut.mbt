@@ -184,14 +184,14 @@ async fn TestEnvironment::init_test_file(
   test_file_path : String,
   cram_compat : Bool,
 ) -> (String, Array[(String, String)]) {
-  let file_name = path_file_name(test_file_path)
-  if file_name.is_empty() || file_name == "." || file_name == ".." {
+  guard path_file_name(test_file_path) is Some(file_name) else {
     raise AppError([
       "split test document file path \{rust_debug_string(test_file_path)} into components",
       "path is not a file",
     ])
   }
-  let parent = path_parent(test_file_path)
+  // `PathBuf::pop`: the parent, if any.
+  let parent = path_parent(test_file_path).unwrap_or(test_file_path)
   let directory = if parent.is_empty() {
     current_directory()
   } else {

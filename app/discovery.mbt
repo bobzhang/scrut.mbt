@@ -118,51 +118,6 @@ fn is_absolute(path : String) -> Bool {
 }
 
 ///|
-/// The directory part of a path (Rust's `Path::parent`, `""` for a bare
-/// file name).
-pub fn path_parent(path : String) -> String {
-  let chars = path.to_array()
-  let mut end = chars.length()
-  let is_sep = (c : Char) => c == '/' || (is_windows() && c == '\\')
-  // Trailing separators do not count.
-  while end > 1 && is_sep(chars[end - 1]) {
-    end -= 1
-  }
-  let mut i = end
-  while i > 0 && !is_sep(chars[i - 1]) {
-    i -= 1
-  }
-  if i == 0 {
-    return ""
-  }
-  let mut j = i - 1
-  while j > 0 && is_sep(chars[j - 1]) {
-    j -= 1
-  }
-  if j == 0 {
-    // The root.
-    return String::from_array(chars[:1])
-  }
-  String::from_array(chars[:j])
-}
-
-///|
-/// The last component of a path.
-pub fn path_file_name(path : String) -> String {
-  let chars = path.to_array()
-  let mut end = chars.length()
-  let is_sep = (c : Char) => c == '/' || (is_windows() && c == '\\')
-  while end > 0 && is_sep(chars[end - 1]) {
-    end -= 1
-  }
-  let mut i = end
-  while i > 0 && !is_sep(chars[i - 1]) {
-    i -= 1
-  }
-  String::from_array(chars[i:end])
-}
-
-///|
 async fn FileParser::read_test_contents(
   self : FileParser,
   path : String,

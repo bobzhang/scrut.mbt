@@ -23,11 +23,15 @@ pub fn is_terminal(Int) -> Bool
 
 pub fn local_timestamp() -> String
 
-pub fn path_file_name(String) -> String
+pub fn path_extension(String) -> String?
+
+pub fn path_file_name(String) -> String?
+
+pub fn path_file_stem(String) -> String?
 
 pub fn path_join(String, String) -> String
 
-pub fn path_parent(String) -> String
+pub fn path_parent(String) -> String?
 
 pub async fn run_create(CreateArgs, Terminal, async () -> String) -> Int
 
@@ -36,6 +40,8 @@ pub async fn run_test(TestArgs, Terminal) -> Int
 pub async fn run_update(UpdateArgs, Terminal, async (String) -> Bool) -> Int
 
 pub let validation_failed_exit_code : Int
+
+pub fn with_extension(String, String) -> String
 
 // Errors
 pub(all) suberror AppError {

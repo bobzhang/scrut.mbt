@@ -9,7 +9,13 @@ import {
   "moonbitlang/async/fs",
   "moonbitlang/x/sys",
   "moonbitlang/core/random",
+  "moonbitlang/core/list",
 }
+
+import {
+  "bobzhang/scrut/app",
+  "bobzhang/scrut/text",
+} for "test"
 
 options(
   "native-stub": [ "stubs.c" ],

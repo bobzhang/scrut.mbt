@@ -43,33 +43,6 @@ fn rust_debug_paths(paths : Array[String]) -> String {
 }
 
 ///|
-/// Rust's `Path::with_extension`.
-fn with_extension(path : String, extension : String) -> String {
-  let name = path_file_name(path)
-  let prefix = path.length() - name.length()
-  let stem_end = match name.rev_find(".") {
-    Some(i) if i > 0 => i
-    _ => name.length()
-  }
-  let stem = path[:prefix + stem_end].to_owned()
-  if extension.is_empty() {
-    stem
-  } else {
-    stem + "." + extension
-  }
-}
-
-///|
-/// Rust's `Path::extension`.
-fn extension_of(path : String) -> String? {
-  let name = path_file_name(path)
-  match name.rev_find(".") {
-    Some(i) if i > 0 => Some(name[i + 1:].to_owned())
-    _ => None
-  }
-}
-
-///|
 fn file_extension(t : @document.ParserType) -> String {
   match t {
     Cram => "t"
@@ -313,12 +286,16 @@ async fn update_document(
   )
   let output_path = match conversion {
     // Upstream converts to the file stem: in the current directory.
-    Some(c) => with_extension(path_file_name(doc.path), file_extension(c))
+    Some(c) =>
+      with_extension(
+        path_file_stem(doc.path).unwrap_or(doc.path),
+        file_extension(c),
+      )
     None =>
       if args.replace {
         doc.path
       } else {
-        let extension = match extension_of(doc.path) {
+        let extension = match path_extension(doc.path) {
           Some(ext) => ext + args.output_suffix
           None => args.output_suffix
         }

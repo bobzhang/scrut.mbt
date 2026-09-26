@@ -1541,6 +1541,7 @@ dependencies = [
 name = "scrut-oracle"
 version = "0.1.0"
 dependencies = [
+ "globset",
  "regex",
  "scrut",
  "serde_json",

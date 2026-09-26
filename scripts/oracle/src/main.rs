@@ -3,6 +3,7 @@ mod text;
 mod rules;
 mod diff;
 mod parse;
+mod misc;
 
 use unicode_categories::UnicodeCategories;
 
@@ -65,6 +66,7 @@ fn main() {
         Some("rules") => rules::main(),
         Some("diff") => diff::main(),
         Some("parse") => parse::main(),
+        Some("misc") => misc::main(),
         other => panic!("unknown mode {other:?}"),
     }
 }

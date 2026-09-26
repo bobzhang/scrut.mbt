@@ -1,0 +1,7 @@
+# Not needed by users of the package: differential-test tables (generated
+# from upstream and Rust/bash oracles), the oracle tooling, self-tests and CI.
+*oracle*test.mbt
+scripts/
+tests/
+.github/
+PLAN.md

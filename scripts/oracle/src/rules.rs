@@ -15,6 +15,20 @@ const REGEX: &[&str] = &[
     ".*", "\\d+", "\\d{3}", "[a-z]+", "[^0-9]", "(foo|bar)", "a{2,3}", "{x}", "\\[", "\\]",
     "[[]]", "\\_", "\\/", ".+?", "\\s*", "\\w", "^", "$", "\\.", "[0-9]{1,2}", "x?", "(?:ab)*",
     "\\x41", "\\p{L}", "\\bfoo\\b", "[[:digit:]]", "\\w+", "\\W", "\\d", "\\D", "[\\w]+", ".+",
+    // Inline flags, Unicode classes and class set operations.
+    "(?i)é", "(?i:é)", "(?i)k", "(?i)σ+", "(?i)straße", "(?i)[a-zé]+", "(?i:ǅ)", "(?-i)x",
+    "(?x) a b # c", "(?x)[ a ]", "(?s).", "(?U)a+", "(?U).+?", "(?m)^", "(?R).", "(?-u:\\w)",
+    "\\p{Greek}+", "\\p{Lu}", "\\pL", "\\P{L}", "\\p{sc=Grek}", "\\p{ Is_Greek }",
+    "\\p{gc!=Lu}", "\\p{Nd}+", "\\p{Han}", "\\p{Emoji}", "\\p{Nope}",
+    "[\\w&&\\p{Latin}]", "[a-z--[aeiou]]", "[\\d~~[0-5]]", "[[:^alpha:]]", "[a-]", "[-a]",
+    "[]a]", "[^\\p{L}\\d]", "[\\p{Greek}\\d]+", "[^\\W\\d]", "\\w+", "\\d", "\\s",
+    "\\x{212A}", "\\u{1F600}", "(?<name>x)", "(?P<n>é)?", "\\B",
+];
+/// Non-ASCII output lines the Unicode-aware patterns above can match.
+const UNICODE_LINES: &[&str] = &[
+    "αβγ\n", "ΑΒΓ\n", "\u{212A}\n", "k\n", "K\n", "É\n", "é\n", "STRASSE\n", "straße\n",
+    "STRAẞE\n", "ǅ\n", "ǆ\n", "Σς\n", "σσ\n", "a b\n", "ab\n", "\u{663}\u{664}\n",
+    "漢字\n", "😀\n", "x\u{301}\n", "Ωmega\n", "ÿ\n", "_\n", " \n", "\u{3000}\n",
 ];
 const ESC: &[&str] = &["\\t", "\\x1b", "\\x00", "\\\\", "\\e", "\\r", "\\0101", "\\x", "\\a"];
 const KINDS: &[&str] = &[
@@ -46,6 +60,21 @@ fn line(rng: &mut Rng) -> String {
     }
 }
 
+/// A line with a regex expectation built from regex pieces and words.
+fn regex_line(rng: &mut Rng) -> String {
+    let n = 1 + rng.below(4);
+    let expr: String = (0..n)
+        .map(|_| {
+            if rng.chance(65) {
+                rng.pick(REGEX).to_string()
+            } else {
+                rng.pick(WORDS).to_string()
+            }
+        })
+        .collect();
+    format!("{expr} ({}{})", rng.pick(&["re", "regex"]), rng.pick(QUANTS))
+}
+
 fn output_lines(rng: &mut Rng, expr_line: &str) -> Vec<Vec<u8>> {
     let mut out = vec![];
     // The expression text itself and simple variants often match.
@@ -67,6 +96,9 @@ fn output_lines(rng: &mut Rng, expr_line: &str) -> Vec<Vec<u8>> {
     out.push(rng.pick(&[&b"\xffbad\n"[..], b"a\xc3\n", b"\xff", b"foo\x80\n"]).to_vec());
     out.push(rng.pick(&[&b"cr\rcr\n"[..], b"a\x0bb\n", b"\xc2\x85\n", b"x\xe2\x80\xa8y\n"]).to_vec());
     out.push(rng.pick(&["\u{65e5}\u{672c}\n", "\u{e9}\n", "\u{663}\n", "\u{24b6}\n", "x\u{301}\n"]).as_bytes().to_vec());
+    for _ in 0..3 {
+        out.push(rng.pick(UNICODE_LINES).as_bytes().to_vec());
+    }
     out
 }
 
@@ -77,8 +109,11 @@ pub fn main() {
     println!("/// result: `ERR` or `kind|hex expression|optional|multiline|original|ascii|unicode`");
     // In chunks: one table would exceed MoonBit's text segment limit.
     const CHUNK: usize = 500;
+    // General cases, then cases with regex expectations only.
+    const GENERAL: usize = 3000;
+    const TOTAL: usize = 5000;
     let ty = "Array[(Bool, String, String, Array[(String, Bool)])]";
-    for i in 0..3000 {
+    for i in 0..TOTAL {
         if i % CHUNK == 0 {
             if i > 0 {
                 println!("]\n\n///|");
@@ -91,7 +126,7 @@ pub fn main() {
             registry.register(CramGlobRule::make, &["glob", "gl"]);
         }
         let maker = ExpectationMaker::new(registry);
-        let l = line(&mut rng);
+        let l = if i < GENERAL { line(&mut rng) } else { regex_line(&mut rng) };
         match maker.parse(&l) {
             Err(_) => println!("  ({cram}, {}, \"ERR\", []),", mbt(&l)),
             Ok(e) => {
@@ -112,6 +147,6 @@ pub fn main() {
         }
     }
     println!("]\n\n///|");
-    let parts: Vec<String> = (0..3000 / CHUNK).map(|k| format!("..rule_cases_{k}")).collect();
+    let parts: Vec<String> = (0..TOTAL / CHUNK).map(|k| format!("..rule_cases_{k}")).collect();
     println!("let rule_cases : {ty} = [{}]", parts.join(", "));
 }

@@ -75,13 +75,24 @@ compare them. This file lists every intentional or known difference.
 
 - **YAML configuration with duplicate keys** is rejected. serde_yaml accepts
   duplicates of fields it ignores.
-- **Regex expectations use `moonbitlang/regexp`** behind a translation from
-  Rust `regex` syntax. Not yet supported: inline flags (`(?i)`) and character
-  class set operations (`[a-z&&[^x]]`).
-  - `.`, `\d`, `\w` and `\s` are expanded to Rust's Unicode definitions,
-    except `\W`, `\S` and `\D` inside a bracketed class.
-  - Word boundaries (`\b`) use ASCII word characters.
-  - Word boundaries next to non-BMP characters use a workaround for a
-    `moonbitlang/regexp` panic.
+- **Regex expectations** are compiled from Rust `regex` syntax to the core
+  regex engine (`@string.Regex`) by a port of regex-syntax's parser, with the
+  regex crate's own Unicode tables. Inline flags, `\p{..}`, Unicode Perl
+  classes, case folding and class set operations behave as in Rust. What
+  remains:
+  - Word boundaries (`\b`, `\B`) use ASCII word characters, so they differ
+    from Rust's Unicode ones next to a non-ASCII letter or digit.
+    `(?-u:\b)` is exact.
+  - Rejected with a "not supported" error where Rust accepts them:
+    - byte matching with Unicode mode off: `(?-u:.)`, `(?-u)\W`, other byte
+      classes with bytes above `\x7F`, and `(?-u)\xHH` above `\x7F`;
+    - `^` and `$` in multi-line CRLF mode (`(?mR)`);
+    - `\b{start}`, `\b{end}`, `\b{start-half}`, `\b{end-half}`, `\<`
+      and `\>`. Upstream's fix-ups turn these into literals first, so they
+      only matter for direct users of `translate_rust_regex`.
+  - Multi-line anchors (`(?m)^`, `(?m)$`) match only at the ends of the text.
+    An output line never contains a line feed, so this is the same.
+  - Patterns beyond the regex crate's size limit for compiled programs
+    (10 MiB, e.g. `\w{210}` or `a{330000}`) are accepted, not rejected.
   - Output that is not valid UTF-8 is matched part by part, as upstream's
     byte regexes do.

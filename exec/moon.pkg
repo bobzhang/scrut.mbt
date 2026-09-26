@@ -1,0 +1,20 @@
+import {
+  "bobzhang/scrut/text",
+  "bobzhang/scrut/rules",
+  "bobzhang/scrut/diff",
+  "bobzhang/scrut/config",
+  "bobzhang/scrut/document",
+  "bobzhang/scrut/argv",
+  "moonbitlang/async",
+  "moonbitlang/async/process",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+  "moonbitlang/async/signal",
+  "moonbitlang/x/sys",
+}
+
+import {
+  "bobzhang/scrut/config",
+  "bobzhang/scrut/document",
+  "bobzhang/scrut/text",
+} for "test"

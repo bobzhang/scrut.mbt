@@ -47,10 +47,12 @@ fn describe(c : Char) -> String {
     '|' => "pipes (`|`) are not supported"
     '&' => "background jobs and `&&` (`&`) are not supported"
     ';' => "command lists (`;`) are not supported"
-    '<' | '>' => "redirections (`\{c}`) are not supported; use the `stdin` configuration for input"
+    '<' | '>' =>
+      "redirections (`\{c}`) are not supported; use the `stdin` configuration for input"
     '(' | ')' => "subshells and grouping (`\{c}`) are not supported"
     '`' => "command substitution (`` ` ``) is not supported"
-    '$' => "variable expansion (`$`) is not supported; use the `environment` configuration"
+    '$' =>
+      "variable expansion (`$`) is not supported; use the `environment` configuration"
     '*' | '?' | '[' => "glob patterns (`\{c}`) are not supported"
     '{' | '}' => "brace expansion (`\{c}`) is not supported"
     '~' => "tilde expansion (`~`) is not supported"
@@ -163,8 +165,20 @@ fn words(expr : String) -> Array[Word] raise ArgvError {
           prefix_open = false
           buf.write_char(e)
         }
-        '|' | '&' | ';' | '<' | '>' | '(' | ')' | '`' | '$' | '*' | '?' | '['
-        | '{' | '}' => raise not_supported(c)
+        '|'
+        | '&'
+        | ';'
+        | '<'
+        | '>'
+        | '('
+        | ')'
+        | '`'
+        | '$'
+        | '*'
+        | '?'
+        | '['
+        | '{'
+        | '}' => raise not_supported(c)
         '\u{0}' => raise ArgvError("NUL characters are not supported")
         '#' if i == word_start => raise not_supported(c)
         '~' if i == word_start => raise not_supported(c)
@@ -195,7 +209,7 @@ fn words(expr : String) -> Array[Word] raise ArgvError {
       Some(at) => Some((text[:at].to_owned(), text[at + 1:].to_owned()))
       None => None
     }
-    out.push({ text, plain, assignment })
+    out.push({ text, plain, assignment, })
   }
   out
 }
@@ -210,8 +224,8 @@ pub fn tokenize(expr : String) -> Array[String] raise ArgvError {
 ///|
 /// Words bash treats as syntax in command position (when unquoted).
 let reserved_words : ReadOnlyArray[String] = [
-  "if", "then", "else", "elif", "fi", "case", "esac", "for", "select", "while",
-  "until", "do", "done", "function", "time", "coproc", "!", "[[", "]]",
+  "if", "then", "else", "elif", "fi", "case", "esac", "for", "select", "while", "until",
+  "do", "done", "function", "time", "coproc", "!", "[[", "]]",
 ]
 
 ///|
@@ -237,5 +251,5 @@ pub fn parse_command(expr : String) -> Command raise ArgvError {
   if program.plain && reserved_words.contains(program.text) {
     raise ArgvError("shell syntax (`\{program.text}`) is not supported")
   }
-  { env, argv: ws[k:].map(w => w.text) }
+  { env, argv: ws[k:].map(w => w.text), }
 }

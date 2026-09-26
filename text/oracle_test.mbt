@@ -2,10 +2,12 @@
 fn unhex(s : String) -> Bytes {
   let chars = s.to_array()
   let out = Buffer()
-  let digit = (c : Char) => if c >= 'a' {
-    c.to_int() - 'a'.to_int() + 10
-  } else {
-    c.to_int() - '0'.to_int()
+  let digit = (c : Char) => {
+    if c >= 'a' {
+      c.to_int() - 'a'.to_int() + 10
+    } else {
+      c.to_int() - '0'.to_int()
+    }
   }
   for i = 0; i + 1 < chars.length(); i = i + 2 {
     out.write_byte((digit(chars[i]) * 16 + digit(chars[i + 1])).to_byte())
@@ -43,7 +45,10 @@ test "escaping matches upstream" {
     }
   }
   if failures.length() > 0 {
-    fail("\{failures.length()} differ:\n" + failures[:failures.length().min(10)].join("\n"))
+    fail(
+      "\{failures.length()} differ:\n" +
+      failures[:failures.length().min(10)].join("\n"),
+    )
   }
 }
 
@@ -58,6 +63,9 @@ test "ANSI stripping matches upstream" {
     }
   }
   if failures.length() > 0 {
-    fail("\{failures.length()} differ:\n" + failures[:failures.length().min(10)].join("\n"))
+    fail(
+      "\{failures.length()} differ:\n" +
+      failures[:failures.length().min(10)].join("\n"),
+    )
   }
 }

@@ -15,6 +15,8 @@ description = "CLI testing in Markdown and Cram files (port of facebookincubator
 import {
   "moonbitlang/async@0.22.4",
   "moonbitlang/x@0.5.5",
+  "moonbitlang/regexp@0.3.5",
+  "moonbit-community/yaml@0.0.6",
 }
 
 preferred_target = "native"

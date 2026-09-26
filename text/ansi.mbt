@@ -34,9 +34,11 @@ fn utf8_validate(bytes : BytesView) -> (Int, Int?)? {
       i += 1
       continue
     }
-    let cont = (k : Int) => i + k < n &&
+    let cont = (k : Int) => {
+      i + k < n &&
       bytes[i + k].to_int() >= 0x80 &&
       bytes[i + k].to_int() <= 0xBF
+    }
     let has = (k : Int) => i + k < n
     let width = if first >= 0xC2 && first <= 0xDF {
       2
@@ -101,13 +103,15 @@ pub fn strip_ansi(data : BytesView) -> Bytes {
   let execute = (b : Int) => if b == 0x0A { out.write_byte(b'\n') }
   let mut state = Ground
   // A byte handled the same way in (nearly) every non-ground state.
-  let anywhere = (b : Int) => match b {
-    0x18 | 0x1A => {
-      execute(b)
-      state = Ground
+  let anywhere = (b : Int) => {
+    match b {
+      0x18 | 0x1A => {
+        execute(b)
+        state = Ground
+      }
+      0x1B => state = Escape
+      _ => ()
     }
-    0x1B => state = Escape
-    _ => ()
   }
   // Characters of valid UTF-8 text in the ground state.
   let ground_text = (text : BytesView) => {

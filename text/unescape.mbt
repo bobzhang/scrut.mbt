@@ -19,7 +19,9 @@ pub impl Show for EscapeError with fn output(self, logger) {
 pub fn expression_as_escaped(expression : String) -> String? {
   for sequence in [" (escaped)", " \\(escaped\\)", " (esc)", " \\(esc\\)"] {
     if expression.has_suffix(sequence) {
-      return Some(expression[:expression.length() - sequence.length()].to_owned())
+      return Some(
+        expression[:expression.length() - sequence.length()].to_owned(),
+      )
     }
   }
   None
@@ -152,7 +154,9 @@ fn resolve_escape_sequences_to_bytes(
 
 ///|
 /// The raw bytes an escaped expression stands for.
-pub fn apply_escaped_filter_bytes(expression : String) -> Bytes raise EscapeError {
+pub fn apply_escaped_filter_bytes(
+  expression : String,
+) -> Bytes raise EscapeError {
   resolve_escape_sequences_to_bytes(unescape_tabs(expression)) catch {
     EscapeError(msg) =>
       raise EscapeError(
@@ -163,7 +167,9 @@ pub fn apply_escaped_filter_bytes(expression : String) -> Bytes raise EscapeErro
 
 ///|
 /// Like `apply_escaped_filter_bytes`, decoded as UTF-8.
-pub fn apply_escaped_filter_utf8(expression : String) -> String raise EscapeError {
+pub fn apply_escaped_filter_utf8(
+  expression : String,
+) -> String raise EscapeError {
   let bytes = apply_escaped_filter_bytes(expression)
   match utf8_string(bytes) {
     Some(s) => s

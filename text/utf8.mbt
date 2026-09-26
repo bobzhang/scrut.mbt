@@ -14,7 +14,7 @@ pub fn lossy_string(data : BytesView) -> String {
 ///|
 /// A string from bytes that must be valid UTF-8.
 pub fn utf8_string(data : BytesView) -> String? {
-  @utf8.decode(data) catch {
+  try @utf8.decode(data) catch {
     _ => None
   } noraise {
     s => Some(s)

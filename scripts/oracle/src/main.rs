@@ -1,5 +1,6 @@
 mod rng;
 mod text;
+mod rules;
 
 use unicode_categories::UnicodeCategories;
 
@@ -34,6 +35,7 @@ fn main() {
     match std::env::args().nth(1).as_deref() {
         Some("tables") => tables(),
         Some("text") => text::main(),
+        Some("rules") => rules::main(),
         other => panic!("unknown mode {other:?}"),
     }
 }

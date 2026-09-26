@@ -113,7 +113,9 @@ fn hex_digit(v : Int) -> Char {
 
 ///|
 fn escaped_printable_unicode(bytes : BytesView) -> String {
-  guard utf8_string(bytes) is Some(s) else { return escaped_printable_ascii(bytes) }
+  guard utf8_string(bytes) is Some(s) else {
+    return escaped_printable_ascii(bytes)
+  }
   let buf = StringBuilder()
   for c in s {
     if is_other(c) {

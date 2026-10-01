@@ -38,6 +38,10 @@ jobs:
       - name: Check
         run: moon check --target native --deny-warn
 
+      - name: Format (no diff)
+        if: runner.os == 'Linux'
+        run: moon fmt --check
+
       - name: Check the scripts
         shell: bash
         run: for f in scripts/*.mbtx; do moon check --deny-warn "$f"; done

@@ -2,7 +2,7 @@
 
 ///|
 pub(all) enum ExitStatus {
-  Code(Int)
+  Code(Int32)
   Timeout(@config.Duration)
   Skipped
   Detached
@@ -21,7 +21,7 @@ pub fn ExitStatus::to_string(self : ExitStatus) -> String {
 }
 
 ///|
-pub fn ExitStatus::as_code(self : ExitStatus) -> Int {
+pub fn ExitStatus::as_code(self : ExitStatus) -> Int32 {
   match self {
     Code(c) => c
     Skipped => @config.default_skip_document_code

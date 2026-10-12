@@ -11,7 +11,7 @@ fn compiled_class(pattern : String) -> CharSet? raise RuleError {
 }
 
 ///|
-fn parse_hex(s : StringView) -> Int {
+fn parse_hex(s : StringView) -> Int32 {
   s.fold(init=0, (acc, c) => {
     acc * 16 +
     (if c >= 'a' {

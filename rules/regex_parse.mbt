@@ -7,7 +7,7 @@
 /// byte when Unicode mode is off).
 priv struct Lit {
   c : Char
-  byte : Int?
+  byte : Int32?
 }
 
 ///|
@@ -119,7 +119,7 @@ priv enum Primitive {
 priv struct Parser {
   pattern : Array[Char]
   expression : String
-  mut pos : Int
+  mut pos : Int32
   mut ignore_whitespace : Bool
   groups : Array[GroupState]
   classes : Array[ClassState]
@@ -678,7 +678,7 @@ fn is_escapeable_character(c : Char) -> Bool {
     return false
   }
   match c {
-    '0'..='9' | 'A'..='Z' | 'a'..='z' | '<' | '>' => false
+    '0'..<='9' | 'A'..<='Z' | 'a'..<='z' | '<' | '>' => false
     _ => true
   }
 }
@@ -690,7 +690,7 @@ fn Parser::parse_escape(self : Parser) -> Primitive raise RuleError {
   }
   let c = self.char()
   match c {
-    '0'..='9' => raise self.error("backreferences are not supported")
+    '0'..<='9' => raise self.error("backreferences are not supported")
     'x' | 'u' | 'U' => return PLiteral(self.parse_hex())
     'p' | 'P' => return PUnicode(self.parse_unicode_class())
     'd' | 's' | 'w' | 'D' | 'S' | 'W' => {
@@ -738,7 +738,7 @@ fn Parser::parse_escape(self : Parser) -> Primitive raise RuleError {
 fn Parser::maybe_parse_special_word_boundary(
   self : Parser,
 ) -> Bool raise RuleError {
-  let is_valid = (c : Char) => c is ('A'..='Z' | 'a'..='z' | '-')
+  let is_valid = (c : Char) => c is ('A'..<='Z' | 'a'..<='z' | '-')
   let start = self.pos
   if !self.bump_and_bump_space() {
     raise self.error("unexpected end of special word boundary or repetition")
@@ -764,11 +764,11 @@ fn Parser::maybe_parse_special_word_boundary(
 
 ///|
 fn is_hex(c : Char) -> Bool {
-  c is ('0'..='9' | 'a'..='f' | 'A'..='F')
+  c is ('0'..<='9' | 'a'..<='f' | 'A'..<='F')
 }
 
 ///|
-fn hex_value(digits : String) -> Int? {
+fn hex_value(digits : String) -> Int32? {
   if digits.length() > 8 {
     // Leading zeros aside, too large for a code point.
     let trimmed = digits.to_array()
@@ -784,8 +784,8 @@ fn hex_value(digits : String) -> Int? {
   let mut n = 0L
   for c in digits {
     let d = match c {
-      '0'..='9' => c.to_int() - '0'.to_int()
-      'a'..='f' => c.to_int() - 'a'.to_int() + 10
+      '0'..<='9' => c.to_int() - '0'.to_int()
+      'a'..<='f' => c.to_int() - 'a'.to_int() + 10
       _ => c.to_int() - 'A'.to_int() + 10
     }
     n = n * 16L + d.to_int64()
@@ -1089,7 +1089,7 @@ fn Parser::maybe_parse_ascii_class(self : Parser) -> (String, Bool)? {
 
 ///|
 /// The ranges of a POSIX class.
-fn ascii_class(name : String) -> Array[(Int, Int)]? {
+fn ascii_class(name : String) -> Array[(Int32, Int32)]? {
   let r = (a : Char, b : Char) => (a.to_int(), b.to_int())
   match name {
     "alnum" => Some([r('0', '9'), r('A', 'Z'), r('a', 'z')])
@@ -1113,7 +1113,11 @@ fn ascii_class(name : String) -> Array[(Int, Int)]? {
 ///|
 /// regex-syntax's nesting limit (groups, repetitions, classes,
 /// alternations and concatenations).
-fn check_nest_limit(ast : Ast, depth : Int, p : Parser) -> Unit raise RuleError {
+fn check_nest_limit(
+  ast : Ast,
+  depth : Int32,
+  p : Parser,
+) -> Unit raise RuleError {
   let deeper = () => {
     if depth + 1 > NEST_LIMIT {
       raise p.error("exceeds the nesting limit")
@@ -1137,7 +1141,7 @@ fn check_nest_limit(ast : Ast, depth : Int, p : Parser) -> Unit raise RuleError 
 ///|
 fn check_set_nest_limit(
   set : ClassSet,
-  depth : Int,
+  depth : Int32,
   p : Parser,
 ) -> Unit raise RuleError {
   match set {

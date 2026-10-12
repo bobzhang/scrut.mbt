@@ -22,12 +22,12 @@ fn is_letter(c : Char) -> Bool {
 ///|
 fn is_white_space(c : Char) -> Bool {
   match c.to_int() {
-    0x09..=0x0D
+    0x09..<=0x0D
     | 0x20
     | 0x85
     | 0xA0
     | 0x1680
-    | 0x2000..=0x200A
+    | 0x2000..<=0x200A
     | 0x2028
     | 0x2029
     | 0x202F
@@ -93,7 +93,7 @@ pub fn extract_code_block_start(line : String) -> (String, String, String)? {
     return Some((line, "", ""))
   }
   let chars = line.to_array()
-  let mut language_start : Int? = None
+  let mut language_start : Int32? = None
   for i, c in chars {
     match language_start {
       Some(ls) =>
@@ -148,11 +148,11 @@ pub(all) enum MarkdownToken {
     language~ : String,
     config_lines~ : Array[String],
     comment_lines~ : Array[String],
-    code_lines~ : Array[(Int, String)]
+    code_lines~ : Array[(Int32, String)]
   )
   /// Any other code block, with all its lines (backtick lines included).
   VerbatimCodeBlock(
-    starting_line~ : Int,
+    starting_line~ : Int32,
     language~ : String,
     lines~ : Array[String]
   )
@@ -259,8 +259,8 @@ fn document_config_yaml(
 /// test case defaults.
 pub fn parse_markdown(
   text : String,
-  languages? : Array[String] = ["scrut"],
-  cram_compat? : Bool = false,
+  languages~ : Array[String] = ["scrut"],
+  cram_compat~ : Bool = false,
 ) -> Document raise ParseError {
   let base = if cram_compat {
     @config.TestCaseConfig::default_cram()

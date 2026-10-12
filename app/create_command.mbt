@@ -29,7 +29,7 @@ pub async fn run_create(
   args : CreateArgs,
   term : Terminal,
   read_stdin : async () -> String,
-) -> Int {
+) -> Int32 {
   let expression = if args.command == ["-"] {
     // Rust's `BufRead::lines`: without line endings.
     let text = read_stdin()
@@ -50,7 +50,7 @@ async fn create_document(
   expression : String,
   env : TestEnvironment,
   term : Terminal,
-) -> Int {
+) -> Int32 {
   let is_cram = args.format is Cram
   let test_file_path = path_join(env.work_directory, "testfile.tmp")
   let (work_directory, env_vars) = env.init_test_file(test_file_path, is_cram)

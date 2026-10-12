@@ -145,7 +145,7 @@ pub fn generate_testcase(
 
 ///|
 /// The number of backticks a code block around `code` needs, minus one.
-fn max_backtick_size(code : String) -> Int {
+fn max_backtick_size(code : String) -> Int32 {
   let mut max = 2
   for line in @document.rust_lines(code) {
     let mut count = 0
@@ -226,8 +226,8 @@ fn trim_start(s : String) -> String {
 /// Rust's `char::is_whitespace`.
 fn is_whitespace(c : Char) -> Bool {
   match c.to_int() {
-    0x09..=0x0D | 0x20 | 0x85 | 0xA0 | 0x1680 => true
-    0x2000..=0x200A | 0x2028 | 0x2029 | 0x202F | 0x205F | 0x3000 => true
+    0x09..<=0x0D | 0x20 | 0x85 | 0xA0 | 0x1680 => true
+    0x2000..<=0x200A | 0x2028 | 0x2029 | 0x202F | 0x205F | 0x3000 => true
     _ => false
   }
 }
@@ -279,7 +279,7 @@ fn cram_indented(indent : String, from : String) -> String {
 
 ///|
 /// The indentation of Cram test cases.
-pub let cram_indention : Int = 2
+pub let cram_indention : Int32 = 2
 
 ///|
 /// A Cram document regenerated from the outcomes. Like upstream, only the

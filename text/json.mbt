@@ -88,12 +88,12 @@ pub fn JsonValue::to_string(self : JsonValue) -> String {
 /// Pretty JSON (`serde_json::to_string_pretty`, two-space indent).
 pub fn JsonValue::to_string_pretty(self : JsonValue) -> String {
   let buf = StringBuilder()
-  fn indent(n : Int) -> Unit {
+  fn indent(n : Int32) -> Unit {
     for _ in 0..<n {
       buf.write_string("  ")
     }
   }
-  fn go(v : JsonValue, depth : Int) -> Unit {
+  fn go(v : JsonValue, depth : Int32) -> Unit {
     match v {
       JArray([]) => buf.write_string("[]")
       JObject([]) => buf.write_string("{}")
@@ -149,7 +149,7 @@ pub fn JsonValue::sorted(self : JsonValue) -> JsonValue {
 
 ///|
 /// Compare strings by their UTF-8 bytes (Rust's `String` order).
-pub fn compare_utf8(a : String, b : String) -> Int {
+pub fn compare_utf8(a : String, b : String) -> Int32 {
   let x = to_bytes(a)
   let y = to_bytes(b)
   let n = x.length().min(y.length())

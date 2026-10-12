@@ -43,10 +43,10 @@ pub fn Glob::to_string(self : Glob) -> String {
 priv struct Parser {
   glob : String
   chars : Array[Char]
-  mut pos : Int
+  mut pos : Int32
   mut prev : Char?
   mut cur : Char?
-  alternates_stack : Array[Int]
+  alternates_stack : Array[Int32]
   branches : Array[Array[Token]]
 }
 
@@ -273,7 +273,7 @@ fn is_empty_regex(tokens : Array[Token]) -> Bool {
 ///|
 /// Bytes a class member stands for (non-ASCII characters as their UTF-8
 /// bytes, as upstream's byte regex does).
-fn class_matches(ranges : Array[(Char, Char)], b : Int) -> Bool {
+fn class_matches(ranges : Array[(Char, Char)], b : Int32) -> Bool {
   for r in ranges {
     let (lo, hi) = r
     if lo.to_int() < 0x80 && hi.to_int() < 0x80 {
@@ -299,11 +299,11 @@ fn match_at(
   tokens : ArrayView[Token],
   rest : @list.List[ArrayView[Token]],
   text : Bytes,
-  at : Int,
+  at : Int32,
 ) -> Bool {
   let n = text.length()
   // `.*` without line feeds from `at`, then continue at every position.
-  let any_run = (continue_at : (Int) -> Bool) => {
+  let any_run = (continue_at : (Int32) -> Bool) => {
     let mut i = at
     while true {
       if continue_at(i) {
@@ -381,5 +381,5 @@ pub fn Glob::is_match(self : Glob, path : String) -> Bool {
   if self.tokens is [RecursivePrefix] {
     return !text.iter().any(b => b == b'\n')
   }
-  match_at(self.tokens, @list.List::new(), text, 0)
+  match_at(self.tokens, @list.List([]), text, 0)
 }

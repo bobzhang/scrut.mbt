@@ -52,7 +52,7 @@ pub struct ExpectationMaker {
 }
 
 ///|
-pub fn ExpectationMaker::new(cram_compat? : Bool = false) -> ExpectationMaker {
+pub fn ExpectationMaker::new(cram_compat~ : Bool = false) -> ExpectationMaker {
   { cram_glob: cram_compat, }
 }
 
@@ -66,12 +66,12 @@ let rule_names : ReadOnlyArray[String] = [
 /// Rust regex `\s` (Unicode `White_Space`).
 fn is_white_space(c : Char) -> Bool {
   match c.to_int() {
-    0x09..=0x0D
+    0x09..<=0x0D
     | 0x20
     | 0x85
     | 0xA0
     | 0x1680
-    | 0x2000..=0x200A
+    | 0x2000..<=0x200A
     | 0x2028
     | 0x2029
     | 0x202F

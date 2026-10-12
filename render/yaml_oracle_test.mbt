@@ -5,7 +5,7 @@
 /// A minimal JSON parser for the table's compact JSON, keeping key order.
 priv struct JsonReader {
   chars : Array[Char]
-  mut pos : Int
+  mut pos : Int32
 }
 
 ///|
@@ -20,14 +20,14 @@ fn JsonReader::expect(self : JsonReader, c : Char) -> Unit {
 }
 
 ///|
-fn JsonReader::hex4(self : JsonReader) -> Int {
+fn JsonReader::hex4(self : JsonReader) -> Int32 {
   let mut v = 0
   for _ in 0..<4 {
     let c = self.peek()
     let d = match c {
-      '0'..='9' => c.to_int() - '0'.to_int()
-      'a'..='f' => c.to_int() - 'a'.to_int() + 10
-      'A'..='F' => c.to_int() - 'A'.to_int() + 10
+      '0'..<='9' => c.to_int() - '0'.to_int()
+      'a'..<='f' => c.to_int() - 'a'.to_int() + 10
+      'A'..<='F' => c.to_int() - 'A'.to_int() + 10
       _ => abort("bad hex digit")
     }
     v = v * 16 + d
@@ -61,12 +61,12 @@ fn JsonReader::string(self : JsonReader) -> String {
               self.expect('u')
               let lo = self.hex4()
               buf.write_char(
-                Int::unsafe_to_char(
+                Int32::unsafe_to_char(
                   0x10000 + ((hi - 0xD800) << 10) + (lo - 0xDC00),
                 ),
               )
             } else {
-              buf.write_char(Int::unsafe_to_char(hi))
+              buf.write_char(Int32::unsafe_to_char(hi))
             }
           }
           _ => buf.write_char(e)

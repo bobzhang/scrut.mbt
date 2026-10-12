@@ -1,7 +1,7 @@
 ///|
 fn tc(
   cmd : String,
-  config? : @config.TestCaseConfig = @config.TestCaseConfig::default_markdown(),
+  config~ : @config.TestCaseConfig = @config.TestCaseConfig::default_markdown(),
 ) -> @document.TestCase {
   {
     title: "",

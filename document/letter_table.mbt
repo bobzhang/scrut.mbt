@@ -2,7 +2,7 @@
 // Code point ranges of `\p{L}` (Unicode letters) per the regex crate.
 
 ///|
-let letter_ranges : ReadOnlyArray[(Int, Int)] = [
+let letter_ranges : ReadOnlyArray[(Int32, Int32)] = [
   (0x41, 0x5A),
   (0x61, 0x7A),
   (0xAA, 0xAA),

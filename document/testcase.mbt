@@ -15,9 +15,9 @@ pub(all) struct TestCase {
   /// The command (with continuation lines joined by `\n`).
   shell_expression : String
   body : ValidationBody
-  exit_code : Int?
+  exit_code : Int32?
   /// Line of the `$` command in the document (1-based).
-  line_number : Int
+  line_number : Int32
   config : @config.TestCaseConfig
 }
 
@@ -31,7 +31,7 @@ pub fn TestCase::expectations(self : TestCase) -> Array[@rules.Expectation] {
 
 ///|
 /// Number of lines of the shell expression.
-pub fn TestCase::shell_expression_lines(self : TestCase) -> Int {
+pub fn TestCase::shell_expression_lines(self : TestCase) -> Int32 {
   let mut n = 1
   for c in self.shell_expression {
     if c == '\n' {

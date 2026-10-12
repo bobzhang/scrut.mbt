@@ -6,11 +6,11 @@ pub(all) enum ExecutionResult {
   /// One output per test case.
   Completed(Array[Output])
   /// A test case exited with the skip code: the whole document is skipped.
-  SkippedAt(Int)
+  SkippedAt(Int32)
   /// Execution stopped at a timeout (per test case, or the document's total).
-  TimedOut(index~ : Int, total~ : Bool, outputs~ : Array[Output])
+  TimedOut(index~ : Int32, total~ : Bool, outputs~ : Array[Output])
   /// A `fail_fast` test case failed.
-  FailedAt(index~ : Int, outputs~ : Array[Output])
+  FailedAt(index~ : Int32, outputs~ : Array[Output])
 }
 
 ///|

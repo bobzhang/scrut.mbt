@@ -50,8 +50,8 @@ pub fn cleanup_unrecognized_escape_sequences(expression : String) -> String {
       | '^'
       | '$'
       | '\\'
-      | 'a'..='z'
-      | 'A'..='Z' => buf.write_char(c)
+      | 'a'..<='z'
+      | 'A'..<='Z' => buf.write_char(c)
       _ => ()
     }
     buf.write_char(c2)
@@ -62,10 +62,10 @@ pub fn cleanup_unrecognized_escape_sequences(expression : String) -> String {
 ///|
 /// Whether `chars[i..]` starts a valid repetition `{n}` / `{n,m}`; returns the
 /// index after the closing brace.
-fn valid_repetition(chars : Array[Char], i : Int) -> Int? {
+fn valid_repetition(chars : Array[Char], i : Int32) -> Int32? {
   guard i < chars.length() && chars[i] == '{' else { return None }
   let mut j = i + 1
-  let digits = (start : Int) => {
+  let digits = (start : Int32) => {
     let mut k = start
     while k < chars.length() && chars[k] >= '0' && chars[k] <= '9' {
       k += 1
@@ -142,7 +142,7 @@ pub fn escape_misused_repetition_quantifier(expression : String) -> String {
   let chars = s.to_array()
   let out = StringBuilder()
   let mut i = 0
-  let starts = (k : Int, lit : String) => {
+  let starts = (k : Int32, lit : String) => {
     let l = lit.to_array()
     if k + l.length() > chars.length() {
       return false
@@ -186,7 +186,7 @@ pub fn escape_misused_repetition_quantifier(expression : String) -> String {
 /// Escape square brackets inside a character class (`[[]]` → `[\[\]]`).
 pub fn escape_misused_character_class(expression : String) -> String {
   let chars = expression.to_array()
-  let actual_closing_index = (idx : Int) => {
+  let actual_closing_index = (idx : Int32) => {
     let mut idx = idx
     while idx < chars.length() {
       if chars[idx - 1] != '\\' {

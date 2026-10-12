@@ -23,10 +23,10 @@ pub fn utf8_string(data : BytesView) -> String? {
 
 ///|
 /// Length of the valid UTF-8 sequence starting at `i` (0 if there is none).
-fn utf8_sequence_length(data : BytesView, i : Int) -> Int {
+fn utf8_sequence_length(data : BytesView, i : Int32) -> Int32 {
   let n = data.length()
   let b0 = data[i].to_int()
-  let cont = (k : Int) => i + k < n && (data[i + k].to_int() & 0xC0) == 0x80
+  let cont = (k : Int32) => i + k < n && (data[i + k].to_int() & 0xC0) == 0x80
   if b0 < 0x80 {
     1
   } else if b0 >= 0xC2 && b0 <= 0xDF {
@@ -60,11 +60,11 @@ fn utf8_sequence_length(data : BytesView, i : Int) -> Int {
 /// The valid UTF-8 parts of `data` between bytes that are not part of a
 /// valid sequence, as (start, text, end) byte positions; parts may be
 /// empty.
-pub fn utf8_segments(data : BytesView) -> Array[(Int, String, Int)] {
+pub fn utf8_segments(data : BytesView) -> Array[(Int32, String, Int32)] {
   let out = []
   let mut start = 0
   let mut i = 0
-  let close = (from : Int, to : Int) => {
+  let close = (from : Int32, to : Int32) => {
     let text = utf8_string(data[from:to]).unwrap_or("")
     out.push((from, text, to))
   }
@@ -87,10 +87,10 @@ pub fn utf8_segments(data : BytesView) -> Array[(Int, String, Int)] {
 pub fn rust_utf8_error(data : BytesView) -> String? {
   let n = data.length()
   let mut i = 0
-  let in_range = (k : Int, lo : Int, hi : Int) => {
+  let in_range = (k : Int32, lo : Int32, hi : Int32) => {
     k < n && data[k].to_int() >= lo && data[k].to_int() <= hi
   }
-  let cont = (k : Int) => in_range(k, 0x80, 0xBF)
+  let cont = (k : Int32) => in_range(k, 0x80, 0xBF)
   while i < n {
     let b0 = data[i].to_int()
     let width = if b0 < 0x80 {
@@ -105,7 +105,7 @@ pub fn rust_utf8_error(data : BytesView) -> String? {
       0
     }
     // Length of the invalid sequence (`None`: input ends inside it).
-    let error_len : Int?? = match width {
+    let error_len : Int32?? = match width {
       0 => Some(Some(1))
       1 => None
       2 =>

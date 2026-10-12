@@ -94,7 +94,7 @@ pub(all) struct TestArgs {
   match_markdown : String
   renderer : RendererKind
   absolute_line_numbers : Bool
-  max_multiline_matched_lines : Int
+  max_multiline_matched_lines : Int32
   verbose : Bool
   global : GlobalArgs
 }
@@ -130,7 +130,7 @@ pub(all) struct Terminal {
 
 ///|
 /// The exit code for failed validations.
-pub let validation_failed_exit_code : Int = 50
+pub let validation_failed_exit_code : Int32 = 50
 
 ///|
 fn prefix_with_directory(
@@ -143,7 +143,7 @@ fn prefix_with_directory(
 ///|
 /// Run `scrut test`; returns the exit code (0, or 50 when a test case
 /// failed). Other failures raise.
-pub async fn run_test(args : TestArgs, term : Terminal) -> Int {
+pub async fn run_test(args : TestArgs, term : Terminal) -> Int32 {
   let parser = FileParser::new(
     args.match_markdown,
     args.match_cram,
@@ -235,7 +235,7 @@ async fn run_document(
   outcomes : Array[@render.Outcome],
   s : @render.Painter,
   say : async (String) -> Unit,
-) -> Int {
+) -> Int32 {
   let cram_compat = args.global.cram_compat
   let prepend_tests = if config.prepend.is_empty() {
     []

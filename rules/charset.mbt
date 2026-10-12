@@ -9,7 +9,7 @@ const MAX_CHAR = 0x10FFFF
 /// A set of code points: sorted, disjoint, non-adjacent inclusive ranges
 /// without surrogates (U+D800 to U+DFFF).
 priv struct CharSet {
-  ranges : Array[(Int, Int)]
+  ranges : Array[(Int32, Int32)]
 }
 
 ///|
@@ -18,17 +18,17 @@ fn CharSet::empty() -> CharSet {
 }
 
 ///|
-fn CharSet::single(c : Int) -> CharSet {
+fn CharSet::single(c : Int32) -> CharSet {
   CharSet::from_ranges([(c, c)])
 }
 
 ///|
 /// A normalized set of the given (unsorted, possibly overlapping) ranges.
-fn CharSet::from_ranges(ranges : Array[(Int, Int)]) -> CharSet {
+fn CharSet::from_ranges(ranges : Array[(Int32, Int32)]) -> CharSet {
   let sorted = ranges.filter(r => r.0 <= r.1)
   sorted.sort_by((a, b) => a.0.compare(b.0))
-  let out : Array[(Int, Int)] = []
-  let push = (lo : Int, hi : Int) => {
+  let out : Array[(Int32, Int32)] = []
+  let push = (lo : Int32, hi : Int32) => {
     if lo > hi {
       return
     }
@@ -52,7 +52,7 @@ fn CharSet::from_ranges(ranges : Array[(Int, Int)]) -> CharSet {
 }
 
 ///|
-fn CharSet::contains(self : CharSet, c : Int) -> Bool {
+fn CharSet::contains(self : CharSet, c : Int32) -> Bool {
   let ranges = self.ranges
   for lo = 0, hi = ranges.length(); lo < hi; {
     let mid = lo + (hi - lo) / 2
@@ -71,7 +71,7 @@ fn CharSet::contains(self : CharSet, c : Int) -> Bool {
 
 ///|
 /// The single code point of a one-element set.
-fn CharSet::single_char(self : CharSet) -> Int? {
+fn CharSet::single_char(self : CharSet) -> Int32? {
   if self.ranges is [(lo, hi)] && lo == hi {
     Some(lo)
   } else {
@@ -81,7 +81,7 @@ fn CharSet::single_char(self : CharSet) -> Int? {
 
 ///|
 /// Whether some member is at least `c`.
-fn CharSet::has_at_least(self : CharSet, c : Int) -> Bool {
+fn CharSet::has_at_least(self : CharSet, c : Int32) -> Bool {
   self.ranges.last() is Some((_, hi)) && hi >= c
 }
 
@@ -92,8 +92,8 @@ fn CharSet::union(self : CharSet, other : CharSet) -> CharSet {
 
 ///|
 /// The complement within `0..=max` (surrogates excluded).
-fn CharSet::negate(self : CharSet, max? : Int = MAX_CHAR) -> CharSet {
-  let out : Array[(Int, Int)] = []
+fn CharSet::negate(self : CharSet, max~ : Int32 = MAX_CHAR) -> CharSet {
+  let out : Array[(Int32, Int32)] = []
   let mut next = 0
   for r in self.ranges {
     if r.0 > next {
@@ -109,7 +109,7 @@ fn CharSet::negate(self : CharSet, max? : Int = MAX_CHAR) -> CharSet {
 
 ///|
 fn CharSet::intersect(self : CharSet, other : CharSet) -> CharSet {
-  let out : Array[(Int, Int)] = []
+  let out : Array[(Int32, Int32)] = []
   let a = self.ranges
   let b = other.ranges
   for i = 0, j = 0; i < a.length() && j < b.length(); {
@@ -140,7 +140,7 @@ fn CharSet::symmetric_difference(self : CharSet, other : CharSet) -> CharSet {
 ///|
 /// Closed under Unicode simple case folding (as `(?i)` does).
 fn CharSet::case_fold(self : CharSet) -> CharSet {
-  let added : Array[(Int, Int)] = []
+  let added : Array[(Int32, Int32)] = []
   let orbits = case_orbits()
   for orbit in orbits {
     if orbit.iter().any(c => self.contains(c)) {
@@ -159,7 +159,7 @@ fn CharSet::case_fold(self : CharSet) -> CharSet {
 ///|
 /// Closed under ASCII case folding (`(?i-u)`).
 fn CharSet::ascii_case_fold(self : CharSet) -> CharSet {
-  let added : Array[(Int, Int)] = []
+  let added : Array[(Int32, Int32)] = []
   for c in 'a'.to_int()..<='z'.to_int() {
     if self.contains(c) || self.contains(c - 32) {
       added.push((c, c))

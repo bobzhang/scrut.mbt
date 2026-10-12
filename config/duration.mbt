@@ -5,7 +5,7 @@
 /// A non-negative duration.
 pub struct Duration {
   secs : UInt64
-  nanos : Int
+  nanos : Int32
 } derive(Eq, Compare, Debug)
 
 ///|
@@ -80,12 +80,12 @@ fn exact_div(a : UInt64, b : UInt64) -> UInt64 raise DurationError {
 /// Unicode `White_Space` (Rust's `char::is_whitespace`).
 fn is_space(c : Char) -> Bool {
   match c.to_int() {
-    0x09..=0x0D
+    0x09..<=0x0D
     | 0x20
     | 0x85
     | 0xA0
     | 0x1680
-    | 0x2000..=0x200A
+    | 0x2000..<=0x200A
     | 0x2028
     | 0x2029
     | 0x202F
@@ -172,8 +172,8 @@ pub fn parse_duration(s : String) -> Duration raise DurationError {
   let parse_unit = (
     n : UInt64,
     frac : (UInt64, UInt64)?,
-    start : Int,
-    end : Int,
+    start : Int32,
+    end : Int32,
   ) => {
     let unit = String::from_array(chars[start:end])
     guard unit_scale(unit) is Some((sec_scale, nsec_scale)) else {

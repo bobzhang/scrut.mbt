@@ -44,7 +44,7 @@ pub(all) enum KillSignal {
 
 ///|
 /// Signal short names and their numbers common to Linux and macOS.
-let signal_numbers : ReadOnlyArray[(String, Int)] = [
+let signal_numbers : ReadOnlyArray[(String, Int32)] = [
   ("hup", 1),
   ("int", 2),
   ("quit", 3),
@@ -68,7 +68,7 @@ let signal_names : ReadOnlyArray[String] = [
 
 ///|
 /// Rust's `str::parse::<i32>`: an optional sign and decimal digits.
-fn parse_i32(s : String) -> Int? {
+fn parse_i32(s : String) -> Int32? {
   let chars = s.to_array()
   let (neg, digits) = match chars {
     ['-', .. rest] => (true, rest)
@@ -140,7 +140,7 @@ pub(all) struct TestCaseConfig {
   environment : Array[(String, String)]
   keep_crlf : Bool?
   output_stream : OutputStream?
-  skip_document_code : Int?
+  skip_document_code : Int32?
   strip_ansi_escaping : Bool?
   timeout : Duration?
   wait : Wait?
@@ -153,7 +153,7 @@ pub(all) struct TestCaseConfig {
 } derive(Eq, Debug)
 
 ///|
-pub let default_skip_document_code : Int = 80
+pub let default_skip_document_code : Int32 = 80
 
 ///|
 pub let default_document_timeout_secs : UInt64 = 900
@@ -309,7 +309,7 @@ pub fn TestCaseConfig::with_environment(
 ///|
 pub fn TestCaseConfig::skip_document_code_or_default(
   self : TestCaseConfig,
-) -> Int {
+) -> Int32 {
   self.skip_document_code.unwrap_or(default_skip_document_code)
 }
 

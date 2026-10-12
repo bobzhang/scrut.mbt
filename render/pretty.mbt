@@ -1,29 +1,29 @@
 // The default, human readable renderer (upstream src/renderers/pretty.rs).
 
 ///|
-pub let default_surrounding_lines : Int = 5
+pub let default_surrounding_lines : Int32 = 5
 
 ///|
-pub let default_multiline_matched_lines : Int = 100
+pub let default_multiline_matched_lines : Int32 = 100
 
 ///|
 /// Options of the pretty renderer. With `color` off the output is
 /// monochrome (colors stripped, as upstream's `PrettyMonochromeRenderer`).
 pub(all) struct PrettyRenderer {
   color : Bool
-  max_surrounding_lines : Int
+  max_surrounding_lines : Int32
   absolute_line_numbers : Bool
   summarize : Bool
-  max_multiline_matched_lines : Int
+  max_multiline_matched_lines : Int32
 }
 
 ///|
 pub fn PrettyRenderer::new(
-  color? : Bool = false,
-  max_surrounding_lines? : Int = default_surrounding_lines,
-  absolute_line_numbers? : Bool = false,
-  summarize? : Bool = true,
-  max_multiline_matched_lines? : Int = default_multiline_matched_lines,
+  color~ : Bool = false,
+  max_surrounding_lines~ : Int32 = default_surrounding_lines,
+  absolute_line_numbers~ : Bool = false,
+  summarize~ : Bool = true,
+  max_multiline_matched_lines~ : Int32 = default_multiline_matched_lines,
 ) -> PrettyRenderer {
   {
     color,
@@ -83,7 +83,7 @@ pub fn PrettyRenderer::render(
 pub fn render_pretty(
   renderer : PrettyRenderer,
   outcomes : Array[Outcome],
-  styled? : Bool = false,
+  styled~ : Bool = false,
 ) -> String {
   if renderer.color {
     renderer.render(outcomes)
@@ -95,10 +95,10 @@ pub fn render_pretty(
 ///|
 fn PrettyRenderer::render_summary(
   self : PrettyRenderer,
-  files : Int,
-  ok : Int,
-  errors : Int,
-  ignored : Int,
+  files : Int32,
+  ok : Int32,
+  errors : Int32,
+  ignored : Int32,
 ) -> String {
   let s = self.style()
   let summary = s.underlined().paint("Result")
@@ -171,7 +171,7 @@ fn PrettyRenderer::render_json_schema_failed(
 
 ///|
 /// Byte length of a string in UTF-8 (Rust's `str::len`).
-fn utf8_len(s : String) -> Int {
+fn utf8_len(s : String) -> Int32 {
   let mut n = 0
   for c in s {
     let v = c.to_int()
@@ -214,8 +214,8 @@ fn PrettyRenderer::render_malformed_output(
     diff.count_output_lines.max(outcome.testcase.expectations().length()),
     self.color,
   )
-  let mut last_error_index : Int? = None
-  let next_error_index = (index : Int) => {
+  let mut last_error_index : Int32? = None
+  let next_error_index = (index : Int32) => {
     for i in index..<diff.lines.length() {
       if !(diff.lines[i] is MatchedExpectation(_)) {
         return Some(i)
@@ -373,8 +373,8 @@ fn PrettyRenderer::render_malformed_output(
 /// Rust's `char::is_whitespace` (the Unicode `White_Space` property).
 fn is_whitespace(c : Char) -> Bool {
   match c.to_int() {
-    0x09..=0x0D | 0x20 | 0x85 | 0xA0 | 0x1680 => true
-    0x2000..=0x200A | 0x2028 | 0x2029 | 0x202F | 0x205F | 0x3000 => true
+    0x09..<=0x0D | 0x20 | 0x85 | 0xA0 | 0x1680 => true
+    0x2000..<=0x200A | 0x2028 | 0x2029 | 0x202F | 0x205F | 0x3000 => true
     _ => false
   }
 }
@@ -413,17 +413,17 @@ fn PrettyRenderer::highlight_trailing_spaces(
 ///|
 /// Line number columns of the diff output.
 priv struct Decorator {
-  width : Int
+  width : Int32
   color : Bool
 }
 
 ///|
-fn Decorator::new(max_lines : Int, color : Bool) -> Decorator {
+fn Decorator::new(max_lines : Int32, color : Bool) -> Decorator {
   { width: max_lines.to_string().length(), color, }
 }
 
 ///|
-fn Decorator::output_line_number(self : Decorator, num : Int?) -> String {
+fn Decorator::output_line_number(self : Decorator, num : Int32?) -> String {
   match num {
     None => " ".repeat(self.width)
     Some(0) => "+".repeat(self.width)
@@ -437,7 +437,7 @@ fn Decorator::output_line_number(self : Decorator, num : Int?) -> String {
 ///|
 fn Decorator::expectation_line_number(
   self : Decorator,
-  num : Int?,
+  num : Int32?,
   multiline : Bool,
 ) -> String {
   self.output_line_number(num) + (if multiline { "+" } else { " " })
@@ -446,8 +446,8 @@ fn Decorator::expectation_line_number(
 ///|
 fn Decorator::line(
   self : Decorator,
-  line_number : Int?,
-  expectation_number : Int?,
+  line_number : Int32?,
+  expectation_number : Int32?,
   multiline : Bool,
   symbol : String,
   content : String,

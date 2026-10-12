@@ -7,7 +7,7 @@ pub(all) enum TestCaseError {
   MalformedOutput(@diff.Diff)
   /// JSON Schema validation failed: (kind, errors).
   JsonSchemaFailed(String, Array[String])
-  InvalidExitCode(actual~ : Int, expected~ : Int)
+  InvalidExitCode(actual~ : Int32, expected~ : Int32)
   InternalError(String)
   Timeout
   Skipped

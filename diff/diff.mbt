@@ -5,23 +5,23 @@
 pub enum DiffLine {
   /// An expectation that matched one or more output lines.
   MatchedExpectation(
-    index~ : Int,
+    index~ : Int32,
     expectation~ : @rules.Expectation,
-    lines~ : Array[(Int, Bytes)]
+    lines~ : Array[(Int32, Bytes)]
   )
   /// A (non-optional) expectation that was not matched.
-  UnmatchedExpectation(index~ : Int, expectation~ : @rules.Expectation)
+  UnmatchedExpectation(index~ : Int32, expectation~ : @rules.Expectation)
   /// Output lines no expectation accounts for.
-  UnexpectedLines(lines~ : Array[(Int, Bytes)])
+  UnexpectedLines(lines~ : Array[(Int32, Bytes)])
 }
 
 ///|
 /// The result of comparing output with expectations.
 pub struct Diff {
   lines : Array[DiffLine]
-  count_matched : Int
-  count_unmatched : Int
-  count_output_lines : Int
+  count_matched : Int32
+  count_unmatched : Int32
+  count_output_lines : Int32
 }
 
 ///|
@@ -55,8 +55,8 @@ pub fn Diff::has_differences(self : Diff) -> Bool {
 
 ///|
 priv enum PeekMatch {
-  NextExpectation(Int)
-  NextLine(Int)
+  NextExpectation(Int32)
+  NextLine(Int32)
   NoMatch
 }
 
@@ -68,15 +68,15 @@ pub fn diff(
   output : BytesView,
 ) -> Diff {
   let lines = @text.split_at_newline(output)
-  let owned = (i : Int) => (i, lines[i].to_owned())
-  let range = (from : Int, to : Int) => {
+  let owned = (i : Int32) => (i, lines[i].to_owned())
+  let range = (from : Int32, to : Int32) => {
     let out = []
     for i in from..<to {
       out.push(owned(i))
     }
     out
   }
-  let peek_matching_expectation = (line : BytesView, start : Int) => {
+  let peek_matching_expectation = (line : BytesView, start : Int32) => {
     for i in start..<expectations.length() {
       if expectations[i].matches(line) {
         return Some(i)
@@ -84,7 +84,7 @@ pub fn diff(
     }
     None
   }
-  let peek_matching_line = (e : @rules.Expectation, start : Int) => {
+  let peek_matching_line = (e : @rules.Expectation, start : Int32) => {
     for i in start..<lines.length() {
       if e.matches(lines[i]) {
         return Some(i)
@@ -92,7 +92,7 @@ pub fn diff(
     }
     None
   }
-  let peek_match = (line_index : Int, expectation_index : Int) => {
+  let peek_match = (line_index : Int32, expectation_index : Int32) => {
     match peek_matching_expectation(lines[line_index], expectation_index + 1) {
       Some(i) => NextExpectation(i)
       None =>
@@ -106,7 +106,7 @@ pub fn diff(
   let mut expectation_index = 0
   let mut line_index = 0
   let diffs = []
-  let mut match_start : Int? = None
+  let mut match_start : Int32? = None
   while expectation_index < expectations.length() && line_index < lines.length() {
     let expectation = expectations[expectation_index]
     let next_expectation = expectations.get(expectation_index + 1)
@@ -204,7 +204,7 @@ pub fn diff(
 }
 
 ///|
-fn pad4(n : Int) -> String {
+fn pad4(n : Int32) -> String {
   let s = n.to_string()
   "0000"[:4 - s.length().min(4)].to_owned() + s
 }

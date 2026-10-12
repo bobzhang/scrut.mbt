@@ -9,10 +9,10 @@
 ///|
 priv struct YamlEmitter {
   buf : StringBuilder
-  mut indent : Int
-  indents : Array[Int]
+  mut indent : Int32
+  indents : Array[Int32]
   /// Characters written on the current line.
-  mut column : Int
+  mut column : Int32
   /// The last character written is whitespace.
   mut whitespace : Bool
   /// Only indentation has been written on the current line.
@@ -192,7 +192,7 @@ fn YamlEmitter::emit_block_mapping(
 priv struct ScalarAnalysis {
   chars : Array[Char]
   /// UTF-8 length.
-  length : Int
+  length : Int32
   multiline : Bool
   block_plain_allowed : Bool
   single_quoted_allowed : Bool
@@ -216,7 +216,7 @@ fn yaml_break(c : Char) -> Bool {
 }
 
 ///|
-fn utf8_width(c : Char) -> Int {
+fn utf8_width(c : Char) -> Int32 {
   let v = c.to_int()
   if v < 0x80 {
     1
@@ -245,7 +245,7 @@ fn analyze_scalar(value : String) -> ScalarAnalysis {
     }
   }
   // `IS_BLANKZ` at an index; the end of the string reads as NUL.
-  let blankz = (i : Int) => {
+  let blankz = (i : Int32) => {
     i >= n || chars[i] is (' ' | '\t' | '\u{0}') || yaml_break(chars[i])
   }
   let mut block_indicators = false
@@ -467,11 +467,11 @@ fn YamlEmitter::write_single_quoted(
 }
 
 ///|
-fn hex_upper(v : Int) -> Char {
+fn hex_upper(v : Int32) -> Char {
   if v < 10 {
-    Int::unsafe_to_char('0'.to_int() + v)
+    Int32::unsafe_to_char('0'.to_int() + v)
   } else {
-    Int::unsafe_to_char('A'.to_int() + v - 10)
+    Int32::unsafe_to_char('A'.to_int() + v - 10)
   }
 }
 

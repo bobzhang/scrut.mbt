@@ -198,7 +198,7 @@ fn Translator::perl_class(
 
 ///|
 /// The largest member of a class: a byte when Unicode mode is off.
-fn Translator::universe(self : Translator) -> Int {
+fn Translator::universe(self : Translator) -> Int32 {
   if self.flags.unicode {
     MAX_CHAR
   } else {
@@ -251,7 +251,7 @@ fn Translator::fold_and_negate(
 fn Translator::class_literal(
   self : Translator,
   lit : Lit,
-) -> Int raise RuleError {
+) -> Int32 raise RuleError {
   if self.flags.unicode {
     return lit.c.to_int()
   }
@@ -319,7 +319,7 @@ fn Translator::class_item(
 const MAX_REPEAT = 256L
 
 ///|
-fn write_hex_char(buf : StringBuilder, c : Int) -> Unit {
+fn write_hex_char(buf : StringBuilder, c : Int32) -> Unit {
   buf.write_string("\\u{")
   buf.write_string(c.to_string(radix=16))
   buf.write_char('}')
@@ -477,8 +477,8 @@ fn compile_rust_regex(expression : String) -> Hir raise RuleError {
 /// text that does not start (end) it.
 pub fn translate_rust_regex(
   expression : String,
-  start_anchor? : Bool = true,
-  end_anchor? : Bool = true,
+  start_anchor~ : Bool = true,
+  end_anchor~ : Bool = true,
 ) -> String raise RuleError {
   let hir = compile_rust_regex(expression)
   let buf = StringBuilder()

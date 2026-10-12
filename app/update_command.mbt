@@ -11,7 +11,7 @@ pub(all) struct UpdateArgs {
   match_markdown : String
   replace : Bool
   absolute_line_numbers : Bool
-  max_multiline_matched_lines : Int
+  max_multiline_matched_lines : Int32
   /// Convert to this format instead of updating in place.
   convert : @document.ParserType?
   verbose : Bool
@@ -56,7 +56,7 @@ pub async fn run_update(
   args : UpdateArgs,
   term : Terminal,
   confirm : async (String) -> Bool,
-) -> Int {
+) -> Int32 {
   let parser = FileParser::new(
     args.match_markdown,
     args.match_cram,

@@ -13,7 +13,7 @@ fn is_separator(c : Char) -> Bool {
 priv struct Components {
   chars : Array[Char]
   has_root : Bool
-  parts : Array[(Int, Int)]
+  parts : Array[(Int32, Int32)]
 }
 
 ///|
@@ -36,7 +36,7 @@ fn components(path : String) -> Components {
 }
 
 ///|
-fn Components::text(self : Components, part : (Int, Int)) -> String {
+fn Components::text(self : Components, part : (Int32, Int32)) -> String {
   String::from_array(self.chars[part.0:part.1])
 }
 

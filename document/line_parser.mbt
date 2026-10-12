@@ -11,7 +11,7 @@ priv enum Position {
 } derive(Eq)
 
 ///|
-fn Position::rank(self : Position) -> Int {
+fn Position::rank(self : Position) -> Int32 {
   match self {
     Start => 0
     Config => 1
@@ -28,12 +28,12 @@ priv struct LineParser {
   mut title : String?
   command_lines : Array[String]
   config_lines : Array[String]
-  mut exit_code : Int?
+  mut exit_code : Int32?
   expectations : Array[@rules.Expectation]
   mut position : Position
   allow_multiple_commands : Bool
   allow_multiline_config : Bool
-  mut output_start_index : Int?
+  mut output_start_index : Int32?
   default_config : @config.TestCaseConfig
   mut config : @config.TestCaseConfig?
   mut json_schema_mode : Bool
@@ -74,7 +74,7 @@ pub fn is_comment(line : String) -> Bool {
 
 ///|
 /// `[<digits>]`, as an exit code (`None` if it does not fit an i32).
-pub fn extract_exit_code(line : String) -> Int? {
+pub fn extract_exit_code(line : String) -> Int32? {
   guard line.has_prefix("[") && line.has_suffix("]") && line.length() > 2 else {
     return None
   }
@@ -104,7 +104,7 @@ fn parse_config_yaml(text : String) -> @config.TestCaseConfig raise ParseError {
 fn LineParser::add_testcase_body(
   self : LineParser,
   line : String,
-  index : Int,
+  index : Int32,
 ) -> Unit raise ParseError {
   // Comments before the command.
   if self.position.rank() < Command.rank() && is_comment(line) {
@@ -180,7 +180,7 @@ fn LineParser::detect_json_schema_mode(self : LineParser) -> Unit {
 /// Finish the current test case, if it has a command.
 fn LineParser::end_testcase(
   self : LineParser,
-  line_index : Int,
+  line_index : Int32,
 ) -> Unit raise ParseError {
   if self.command_lines.is_empty() {
     if !self.expectations.is_empty() {

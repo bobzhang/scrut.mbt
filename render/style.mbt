@@ -7,9 +7,9 @@
 /// 0, underlined bit 3).
 priv struct Style {
   enabled : Bool
-  fg : Int?
+  fg : Int32?
   bright : Bool
-  attrs : Int
+  attrs : Int32
 }
 
 ///|
@@ -18,7 +18,7 @@ fn style(enabled : Bool) -> Style {
 }
 
 ///|
-fn Style::fg(self : Style, color : Int) -> Style {
+fn Style::fg(self : Style, color : Int32) -> Style {
   { ..self, fg: Some(color), }
 }
 

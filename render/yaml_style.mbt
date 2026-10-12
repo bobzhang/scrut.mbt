@@ -74,7 +74,7 @@ let i128_min_magnitude : @bigint.BigInt = 1N << 127
 /// limit.
 fn radix_digits_fit(
   digits : StringView,
-  radix : Int,
+  radix : Int32,
   limit : @bigint.BigInt,
 ) -> Bool {
   if digits.is_empty() {
@@ -84,9 +84,9 @@ fn radix_digits_fit(
   let big_radix = @bigint.BigInt::from_int(radix)
   for c in digits {
     let d = match c {
-      '0'..='9' => c.to_int() - '0'.to_int()
-      'a'..='z' => c.to_int() - 'a'.to_int() + 10
-      'A'..='Z' => c.to_int() - 'A'.to_int() + 10
+      '0'..<='9' => c.to_int() - '0'.to_int()
+      'a'..<='z' => c.to_int() - 'a'.to_int() + 10
+      'A'..<='Z' => c.to_int() - 'A'.to_int() + 10
       _ => return false
     }
     if d >= radix {
@@ -172,7 +172,7 @@ fn rust_f64_is_finite(s : StringView) -> Bool {
   let body = if starts_with_sign(s) { s[1:] } else { s }
   let cs : Array[Char] = body.iter().collect()
   let n = cs.length()
-  let is_digit = (i : Int) => i < n && cs[i] >= '0' && cs[i] <= '9'
+  let is_digit = (i : Int32) => i < n && cs[i] >= '0' && cs[i] <= '9'
   let mut i = 0
   let mut mantissa_digits = 0
   let mut nonzero = false

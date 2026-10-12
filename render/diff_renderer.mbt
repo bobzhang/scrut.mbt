@@ -27,7 +27,7 @@ fn line_prefix(outcome : Outcome) -> String {
 }
 
 ///|
-fn length_suffix(len : Int) -> String {
+fn length_suffix(len : Int32) -> String {
   if len > 1 || len == 0 {
     ",\{len}"
   } else {
@@ -37,10 +37,10 @@ fn length_suffix(len : Int) -> String {
 
 ///|
 fn diff_header(
-  old_start : Int,
-  old_length : Int,
-  new_start : Int,
-  new_length : Int,
+  old_start : Int32,
+  old_length : Int32,
+  new_start : Int32,
+  new_length : Int32,
   kind : String,
   title : String,
 ) -> String {
@@ -171,9 +171,9 @@ fn unified_diff(
   let line_number = outcome.testcase.line_number +
     outcome.testcase.shell_expression_lines()
   let output = StringBuilder()
-  let mut unmatched_start : Int? = None
+  let mut unmatched_start : Int32? = None
   let unmatched_lines : Array[String] = []
-  let mut unexpected_start : Int? = None
+  let mut unexpected_start : Int32? = None
   let unexpected_lines : Array[String] = []
   let add_hunk = () => {
     if unmatched_start is Some(_) || unexpected_start is Some(_) {

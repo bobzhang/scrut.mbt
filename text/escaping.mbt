@@ -103,11 +103,11 @@ fn escaped_printable_ascii(bytes : BytesView) -> String {
 }
 
 ///|
-fn hex_digit(v : Int) -> Char {
+fn hex_digit(v : Int32) -> Char {
   if v < 10 {
-    Int::unsafe_to_char(0x30 + v)
+    Int32::unsafe_to_char(0x30 + v)
   } else {
-    Int::unsafe_to_char(0x61 + v - 10)
+    Int32::unsafe_to_char(0x61 + v - 10)
   }
 }
 
@@ -141,7 +141,7 @@ pub fn Escaper::forced_expectation(self : Escaper, raw : BytesView) -> String {
     _ => None
   }
   // Characters from here on are hex-escaped when they are whitespace or `)`.
-  let tail_start = (items : Array[Int]) => {
+  let tail_start = (items : Array[Int32]) => {
     let mut k = items.length()
     while k > 0 &&
           (

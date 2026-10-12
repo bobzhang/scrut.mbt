@@ -6,7 +6,7 @@
 /// new indented line, except the end tag right after text content.
 priv struct XmlWriter {
   buf : StringBuilder
-  mut depth : Int
+  mut depth : Int32
   mut line_break : Bool
 }
 
@@ -104,7 +104,7 @@ priv enum Status {
 priv struct Case {
   mut name : String
   classname : String
-  line_number : Int
+  line_number : Int32
   duration_ms : Int64?
   status : Status
   system_out : String
@@ -154,7 +154,7 @@ fn counts(cases : Array[Case]) -> Array[(String, String)] {
 fn is_legal_xml_char(c : Char) -> Bool {
   match c.to_int() {
     0x09 | 0x0A | 0x0D => true
-    0x20..=0xD7FF | 0xE000..=0xFFFD | 0x10000..=0x10FFFF => true
+    0x20..<=0xD7FF | 0xE000..<=0xFFFD | 0x10000..<=0x10FFFF => true
     _ => false
   }
 }
@@ -231,7 +231,7 @@ fn package_of(location : String) -> String? {
 }
 
 ///|
-fn report_line(outcome : Outcome) -> Int {
+fn report_line(outcome : Outcome) -> Int32 {
   let line_number = outcome.testcase.line_number
   guard outcome.result is Err(MalformedOutput(diff)) else { return line_number }
   for line in diff.lines {
@@ -298,7 +298,7 @@ pub fn render_junit(
   outcomes : Array[Outcome],
   base_directory? : String,
   timestamp? : String,
-  styled? : Bool = false,
+  styled~ : Bool = false,
 ) -> String {
   let suites : Array[Suite] = []
   for outcome in outcomes {

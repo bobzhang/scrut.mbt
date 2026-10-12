@@ -177,7 +177,7 @@ async fn read_pipe(pipe : &@io.Reader, into : Buffer) -> Unit noraise {
 /// stderr).
 fn start_failure(
   config : @config.TestCaseConfig,
-  code : Int,
+  code : Int32,
   message : String,
 ) -> Output {
   let bytes = @text.to_bytes(message + "\n")

@@ -119,7 +119,7 @@ fn words(expr : String) -> Array[Word] raise ArgvError {
     // Unquoted prefix of the raw word, for assignment detection.
     let raw_prefix = StringBuilder()
     let mut prefix_open = true
-    let mut assignment_at : Int? = None
+    let mut assignment_at : Int32? = None
     let word_start = i
     let mut ends = false
     while i < n && !ends {
@@ -268,8 +268,8 @@ fn is_name(name : String) -> Bool {
 /// `$` inside double quotes) and the index after it.
 fn variable_reference(
   chars : Array[Char],
-  i : Int,
-) -> (String, Int) raise ArgvError {
+  i : Int32,
+) -> (String, Int32) raise ArgvError {
   let n = chars.length()
   let hint = "only $NAME and ${NAME} are supported"
   let name_and_next = if i + 1 < n && chars[i + 1] == '{' {
@@ -339,7 +339,7 @@ fn expand(
 /// handling), with variables looked up in `env`.
 pub fn tokenize(
   expr : String,
-  env? : Array[(String, String)] = [],
+  env~ : Array[(String, String)] = [],
 ) -> Array[String] raise ArgvError {
   words(expr).map(w => expand(w.segments, env))
 }
@@ -357,7 +357,7 @@ let reserved_words : ReadOnlyArray[String] = [
 /// command's own assignments (as bash expands them).
 pub fn parse_command(
   expr : String,
-  env? : Array[(String, String)] = [],
+  env~ : Array[(String, String)] = [],
 ) -> Command raise ArgvError {
   let ws = words(expr)
   let assignments : Array[(String, String)] = []

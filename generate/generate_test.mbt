@@ -14,7 +14,7 @@ let pieces : ReadOnlyArray[Bytes] = [
 ]
 
 ///|
-fn output_bytes(codes : Array[Int]) -> Bytes {
+fn output_bytes(codes : Array[Int32]) -> Bytes {
   let buf = Buffer()
   let n = pieces.length()
   for code in codes {
@@ -26,7 +26,7 @@ fn output_bytes(codes : Array[Int]) -> Bytes {
 ///|
 fn outcome_for(
   stdout : Bytes,
-  exit_code : Int,
+  exit_code : Int32,
   format : @document.ParserType,
   escaping : @text.Escaper,
 ) -> @render.Outcome {
@@ -51,7 +51,7 @@ fn outcome_for(
 
 ///|
 fn regenerated_passes(
-  codes : Array[Int],
+  codes : Array[Int32],
   format : @document.ParserType,
   escaping : @text.Escaper,
 ) -> Bool raise {
@@ -80,11 +80,11 @@ fn regenerated_passes(
 ///|
 test "generated Markdown expectations match the output" {
   @quickcheck.check(
-    (codes : Array[Int]) => regenerated_passes(codes, Markdown, Unicode),
+    (codes : Array[Int32]) => regenerated_passes(codes, Markdown, Unicode),
     count=1000,
   )
   @quickcheck.check(
-    (codes : Array[Int]) => regenerated_passes(codes, Markdown, Ascii),
+    (codes : Array[Int32]) => regenerated_passes(codes, Markdown, Ascii),
     count=1000,
   )
 }
@@ -92,7 +92,7 @@ test "generated Markdown expectations match the output" {
 ///|
 test "generated Cram expectations match the output" {
   @quickcheck.check(
-    (codes : Array[Int]) => regenerated_passes(codes, Cram, Ascii),
+    (codes : Array[Int32]) => regenerated_passes(codes, Cram, Ascii),
     count=1000,
   )
 }

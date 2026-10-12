@@ -43,7 +43,7 @@ fn expectation_json(e : @rules.Expectation) -> @text.JsonValue {
 }
 
 ///|
-fn lines_json(lines : Array[(Int, Bytes)]) -> @text.JsonValue {
+fn lines_json(lines : Array[(Int32, Bytes)]) -> @text.JsonValue {
   JArray(
     lines.map(l => {
       @text.JArray([JNumber(l.0.to_string()), JString(@text.lossy_string(l.1))])

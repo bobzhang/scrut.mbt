@@ -25,7 +25,7 @@ priv enum VteState {
 /// The result of validating UTF-8 like Rust's `str::from_utf8`: the length of
 /// the valid prefix and, on failure, the length of the invalid sequence
 /// (`None` when the input ends in the middle of a sequence).
-fn utf8_validate(bytes : BytesView) -> (Int, Int?)? {
+fn utf8_validate(bytes : BytesView) -> (Int32, Int32?)? {
   let n = bytes.length()
   let mut i = 0
   while i < n {
@@ -34,12 +34,12 @@ fn utf8_validate(bytes : BytesView) -> (Int, Int?)? {
       i += 1
       continue
     }
-    let cont = (k : Int) => {
+    let cont = (k : Int32) => {
       i + k < n &&
       bytes[i + k].to_int() >= 0x80 &&
       bytes[i + k].to_int() <= 0xBF
     }
-    let has = (k : Int) => i + k < n
+    let has = (k : Int32) => i + k < n
     let width = if first >= 0xC2 && first <= 0xDF {
       2
     } else if first >= 0xE0 && first <= 0xEF {
@@ -100,10 +100,10 @@ fn utf8_validate(bytes : BytesView) -> (Int, Int?)? {
 pub fn strip_ansi(data : BytesView) -> Bytes {
   let out = Buffer(size_hint=data.length())
   let print = (c : Char) => out.write_bytes(to_bytes(c.to_string()))
-  let execute = (b : Int) => if b == 0x0A { out.write_byte(b'\n') }
+  let execute = (b : Int32) => if b == 0x0A { out.write_byte(b'\n') }
   let mut state = Ground
   // A byte handled the same way in (nearly) every non-ground state.
-  let anywhere = (b : Int) => {
+  let anywhere = (b : Int32) => {
     match b {
       0x18 | 0x1A => {
         execute(b)

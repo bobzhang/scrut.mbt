@@ -153,7 +153,7 @@ pub fn Rule::make(
 /// `\*`, `\?` and `\\` are literal; the whole line must match.
 fn cram_glob_matches(pattern : String, input : String) -> Bool {
   // Tokens: 0 = any run, 1 = any character, 2 = literal.
-  let kinds : Array[Int] = []
+  let kinds : Array[Int32] = []
   let lits : Array[Char] = []
   let chars = pattern.to_array()
   let mut i = 0

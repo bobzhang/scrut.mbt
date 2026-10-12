@@ -36,7 +36,7 @@ fn header_to_title(
 ///|
 /// The header above a failed test case: location, title and command
 /// between dividers.
-pub fn Outcome::render_header(self : Outcome, color? : Bool = false) -> String {
+pub fn Outcome::render_header(self : Outcome, color~ : Bool = false) -> String {
   let headers = []
   let location = match self.location {
     Some(location) => "\{location}:\{self.testcase.line_number}"

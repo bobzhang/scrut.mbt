@@ -4,27 +4,27 @@
 
 ///|
 #cfg(target="native")
-extern "C" fn scrut_isatty(fd : Int) -> Int = "scrut_isatty"
+extern "C" fn scrut_isatty(fd : Int32) -> Int32 = "scrut_isatty"
 
 ///|
 #cfg(not(target="native"))
-fn scrut_isatty(_fd : Int) -> Int {
+fn scrut_isatty(_fd : Int32) -> Int32 {
   0
 }
 
 ///|
 /// Whether standard output (1) or standard error (2) is a terminal.
-pub fn is_terminal(fd : Int) -> Bool {
+pub fn is_terminal(fd : Int32) -> Bool {
   scrut_isatty(fd) != 0
 }
 
 ///|
 #cfg(target="native")
-extern "C" fn scrut_enable_ansi(fd : Int) -> Int = "scrut_enable_ansi"
+extern "C" fn scrut_enable_ansi(fd : Int32) -> Int32 = "scrut_enable_ansi"
 
 ///|
 #cfg(not(target="native"))
-fn scrut_enable_ansi(_fd : Int) -> Int {
+fn scrut_enable_ansi(_fd : Int32) -> Int32 {
   1
 }
 
@@ -44,7 +44,7 @@ pub fn colors_enabled(env : Map[String, String]) -> Bool {
 ///|
 #cfg(target="native")
 #borrow(out)
-extern "C" fn scrut_local_timestamp(out : FixedArray[Byte]) -> Int = "scrut_local_timestamp"
+extern "C" fn scrut_local_timestamp(out : FixedArray[Byte]) -> Int32 = "scrut_local_timestamp"
 
 ///|
 /// The current local time as `YYYY-MM-DDTHH:MM:SS`.

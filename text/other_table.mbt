@@ -3,7 +3,7 @@
 // as known to the unicode_categories 0.1.1 crate upstream scrut uses.
 
 ///|
-let other_ranges : ReadOnlyArray[(Int, Int)] = [
+let other_ranges : ReadOnlyArray[(Int32, Int32)] = [
   (0x0, 0x1F),
   (0x7F, 0x9F),
   (0xAD, 0xAD),

@@ -62,7 +62,7 @@ pub fn unescape_tabs(escaped : String) -> String {
 
 ///|
 /// Rust's `u8::from_str_radix` on a two-character string.
-fn byte_from_str_radix(s : String, radix : Int) -> Int? {
+fn byte_from_str_radix(s : String, radix : Int32) -> Int32? {
   let chars = s.to_array()
   let digits = if chars.length() > 0 && chars[0] == '+' {
     chars[1:]

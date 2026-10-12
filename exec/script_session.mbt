@@ -19,7 +19,7 @@ pub impl Show for ExecutionError with fn output(self, logger) {
 }
 
 ///|
-fn failed_at(index : Int, message : String) -> ExecutionError {
+fn failed_at(index : Int32, message : String) -> ExecutionError {
   ExecutionError("error in execution with index=\{index}: \{message}")
 }
 

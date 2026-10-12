@@ -42,7 +42,7 @@ fn expect_string(key : String, y : @yaml.Yaml) -> String raise ConfigError {
 }
 
 ///|
-fn expect_int(key : String, y : @yaml.Yaml) -> Int raise ConfigError {
+fn expect_int(key : String, y : @yaml.Yaml) -> Int32 raise ConfigError {
   match y {
     Integer(i) if i >= -2147483648L && i <= 2147483647L => i.to_int()
     _ =>

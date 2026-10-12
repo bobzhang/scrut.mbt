@@ -4,15 +4,15 @@
 
 ///|
 /// Decodes the base-32 numbers of a generated table.
-fn decode_numbers(encoded : String) -> Array[Int] {
+fn decode_numbers(encoded : String) -> Array[Int32] {
   let out = []
   let mut acc = 0
   for c in encoded {
     let (digit, last) = match c {
-      '0'..='9' => (c.to_int() - '0'.to_int(), true)
-      'a'..='v' => (c.to_int() - 'a'.to_int() + 10, true)
-      'A'..='Z' => (c.to_int() - 'A'.to_int(), false)
-      'w'..='z' => (c.to_int() - 'w'.to_int() + 26, false)
+      '0'..<='9' => (c.to_int() - '0'.to_int(), true)
+      'a'..<='v' => (c.to_int() - 'a'.to_int() + 10, true)
+      'A'..<='Z' => (c.to_int() - 'A'.to_int(), false)
+      'w'..<='z' => (c.to_int() - 'w'.to_int() + 26, false)
       '+' => (30, false)
       '/' => (31, false)
       // Line breaks of multi-line literals.
@@ -78,11 +78,11 @@ fn perl_space() -> CharSet {
 }
 
 ///|
-let case_orbit_table : Ref[Array[Array[Int]]?] = Ref(None)
+let case_orbit_table : Ref[Array[Array[Int32]]?] = Ref(None)
 
 ///|
 /// The simple case folding orbits with more than one member.
-fn case_orbits() -> Array[Array[Int]] {
+fn case_orbits() -> Array[Array[Int32]] {
   if case_orbit_table.val is Some(orbits) {
     return orbits
   }
@@ -106,11 +106,11 @@ fn case_orbits() -> Array[Array[Int]] {
 }
 
 ///|
-let case_orbit_of_table : Ref[Map[Int, Int]?] = Ref(None)
+let case_orbit_of_table : Ref[Map[Int32, Int32]?] = Ref(None)
 
 ///|
 /// The case folding orbit of a code point, if it has other members.
-fn case_orbit(c : Int) -> Array[Int]? {
+fn case_orbit(c : Int32) -> Array[Int32]? {
   let orbits = case_orbits()
   let index = match case_orbit_of_table.val {
     Some(index) => index
@@ -132,12 +132,12 @@ fn case_orbit(c : Int) -> Array[Int]? {
 /// Rust's `char::is_whitespace` (White_Space).
 fn is_rust_whitespace(c : Char) -> Bool {
   match c {
-    '\t'..='\r'
+    '\t'..<='\r'
     | ' '
     | '\u{85}'
     | '\u{A0}'
     | '\u{1680}'
-    | '\u{2000}'..='\u{200A}'
+    | '\u{2000}'..<='\u{200A}'
     | '\u{2028}'
     | '\u{2029}'
     | '\u{202F}'
@@ -185,7 +185,7 @@ fn symbolic_name_normalize(name : String) -> String {
   for c in chars[if starts_with_is { 2 } else { 0 }:] {
     match c {
       ' ' | '_' | '-' => ()
-      'A'..='Z' => buf.write_char((c.to_int() + 32).unsafe_to_char())
+      'A'..<='Z' => buf.write_char((c.to_int() + 32).unsafe_to_char())
       _ => if c.to_int() <= 0x7F { buf.write_char(c) }
     }
   }

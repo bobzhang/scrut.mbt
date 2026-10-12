@@ -20,9 +20,9 @@ fn unescape(text : String) -> Bytes {
   let mut i = 0
   let hex = (c : Char) => {
     match c {
-      '0'..='9' => c.to_int() - '0'.to_int()
-      'a'..='f' => c.to_int() - 'a'.to_int() + 10
-      'A'..='F' => c.to_int() - 'A'.to_int() + 10
+      '0'..<='9' => c.to_int() - '0'.to_int()
+      'a'..<='f' => c.to_int() - 'a'.to_int() + 10
+      'A'..<='F' => c.to_int() - 'A'.to_int() + 10
       _ => -1
     }
   }
@@ -67,7 +67,7 @@ fn unescape(text : String) -> Bytes {
 }
 
 ///|
-async fn run(command : Array[String]) -> Int? {
+async fn run(command : Array[String]) -> Int32? {
   match command {
     [] => None
     ["echo", .. words] => {

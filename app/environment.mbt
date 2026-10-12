@@ -50,7 +50,7 @@ let temp_name_chars : String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 /// Create a new directory `<prefix>XXXXXX` in `parent` (like the
 /// `tempfile` crate).
 async fn make_temp_dir(parent : String, prefix : String) -> String {
-  let rng = @random.Rand::new()
+  let rng = @random.Rand()
   for _ in 0..<1000 {
     let name = StringBuilder()
     name.write_string(prefix)

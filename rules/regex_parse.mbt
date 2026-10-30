@@ -872,12 +872,7 @@ fn Parser::parse_unicode_class(
     let name = scratch.to_string()
     let split = (sep : String) => {
       guard name.find(sep) is Some(i) else { return None }
-      Some(
-        (
-          name.view(end_offset=i).to_owned(),
-          name.view(start_offset=i + sep.length()).to_owned(),
-        ),
-      )
+      Some((name[:i].to_owned(), name[i + sep.length():].to_owned()))
     }
     if split("!=") is Some((n, v)) {
       { negated: !negated, query: ByValue(n, v), }

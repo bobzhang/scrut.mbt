@@ -10,7 +10,7 @@ import {
 // Values
 pub let default_document_timeout_secs : UInt64
 
-pub let default_skip_document_code : Int
+pub let default_skip_document_code : Int32
 
 pub fn document_config_from_yaml(@yaml.Yaml) -> DocumentConfig raise ConfigError
 
@@ -48,7 +48,7 @@ pub fn DocumentConfig::with_overrides_from(Self, Self) -> Self
 
 pub struct Duration {
   secs : UInt64
-  nanos : Int
+  nanos : Int32
 } derive(Compare, Eq, @debug.Debug)
 pub fn Duration::as_millis(Self) -> Int64
 pub fn Duration::from_millis(Int64) -> Self
@@ -78,7 +78,7 @@ pub(all) struct TestCaseConfig {
   environment : Array[(String, String)]
   keep_crlf : Bool?
   output_stream : OutputStream?
-  skip_document_code : Int?
+  skip_document_code : Int32?
   strip_ansi_escaping : Bool?
   timeout : Duration?
   wait : Wait?
@@ -93,7 +93,7 @@ pub fn TestCaseConfig::diff(Self, Self) -> Self
 pub fn TestCaseConfig::empty() -> Self
 pub fn TestCaseConfig::is_empty(Self) -> Bool
 pub fn TestCaseConfig::is_json_schema(Self) -> Bool
-pub fn TestCaseConfig::skip_document_code_or_default(Self) -> Int
+pub fn TestCaseConfig::skip_document_code_or_default(Self) -> Int32
 pub fn TestCaseConfig::to_json(Self) -> @text.JsonValue
 pub fn TestCaseConfig::to_yaml_one_liner(Self) -> String
 pub fn TestCaseConfig::with_defaults_from(Self, Self) -> Self

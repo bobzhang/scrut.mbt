@@ -1,4 +1,4 @@
-///|
+----
 import {
   "moonbitlang/async@0.22.4",
   "moonbitlang/async@0.22.4/fs",
@@ -10,6 +10,7 @@ import {
   "moonbitlang/core/string",
   "moonbitlang/x@0.5.5/sys",
 }
+----
 
 ///|
 /// Compare `scrut test` of this port with upstream on random documents.
@@ -129,8 +130,8 @@ async fn main {
 
 ///|
 struct Options {
-  seed : Int
-  count : Int
+  seed : Int32
+  count : Int32
   keep : Bool
   wasm : Bool
 }
@@ -143,7 +144,7 @@ fn parse_options(args : ArrayView[String]) -> Options {
   let mut keep = false
   let mut wasm = false
   let mut i = 0
-  fn bad(message : String) -> Int {
+  fn bad(message : String) -> Int32 {
     println(usage)
     println("cli_oracle.mbtx: error: " + message)
     @sys.exit(2)
@@ -389,7 +390,7 @@ fn expectation_for(rng : Rng, line : BytesView) -> String {
 
 ///|
 /// A random test case: (title, command, expectations, exit code).
-fn testcase(rng : Rng) -> (String, String, Array[String], Int) {
+fn testcase(rng : Rng) -> (String, String, Array[String], Int32) {
   let lines = random_lines(rng)
   let eol = rng.random() < 0.8
   let fmt = lines.join("\\n") +
@@ -438,7 +439,7 @@ fn testcase(rng : Rng) -> (String, String, Array[String], Int) {
 /// expectations, exit code).
 fn special_testcase(
   rng : Rng,
-) -> (Array[String], Array[String], Array[String], Int) {
+) -> (Array[String], Array[String], Array[String], Int32) {
   let kind = rng.choice([
     "timeout", "env", "stderr", "interpolate", "detached", "wait", "continuation",
     "skip", "exit", "variables",
@@ -668,7 +669,7 @@ fn normalize_yaml(text : String) -> String {
 ///|
 /// The key of a `^ *(- )?KEY: ` line among the keys normalization knows, and
 /// where it ends.
-fn yaml_key(line : String) -> (Int, String)? {
+fn yaml_key(line : String) -> (Int32, String)? {
   let mut i = 0
   while i < line.length() && line[i] == ' ' {
     i += 1
@@ -722,12 +723,12 @@ struct Oracle {
 /// The result of `test` (exit code and normalized stdout) or `update` (exit
 /// code, stdout, stderr and the files after the update, sorted by name).
 enum Outcome {
-  Test(Int, String)
-  Update(Int, Bytes, Bytes, Array[(String, Bytes)])
+  Test(Int32, String)
+  Update(Int32, Bytes, Bytes, Array[(String, Bytes)])
 } derive(Eq)
 
 ///|
-fn Outcome::code(self : Outcome) -> Int {
+fn Outcome::code(self : Outcome) -> Int32 {
   match self {
     Test(code, _) | Update(code, _, _, _) => code
   }
@@ -756,8 +757,8 @@ async fn Oracle::run(
   args : Array[String],
   cwd : String,
   color : Bool,
-  command? : String = "test",
-) -> (Int, Bytes, Bytes) {
+  command~ : String = "test",
+) -> (Int32, Bytes, Bytes) {
   let env = self.env.copy()
   if color {
     env["CLICOLOR_FORCE"] = "1"
@@ -1049,7 +1050,7 @@ fn parent(path : String) -> String? {
 struct Rng(@random.Rand)
 
 ///|
-fn Rng::new(seed : Int) -> Rng {
+fn Rng::new(seed : Int32) -> Rng {
   let bytes = Array::make(32, b'\x00')
   for i in 0..<4 {
     bytes[i] = ((seed >> (8 * i)) & 0xFF).to_byte()
@@ -1065,13 +1066,13 @@ fn Rng::random(self : Rng) -> Double {
 
 ///|
 /// A random integer in [0, n).
-fn Rng::randrange(self : Rng, n : Int) -> Int {
+fn Rng::randrange(self : Rng, n : Int32) -> Int32 {
   self.0.int(limit=n)
 }
 
 ///|
 /// A random integer in [lo, hi].
-fn Rng::randint(self : Rng, lo : Int, hi : Int) -> Int {
+fn Rng::randint(self : Rng, lo : Int32, hi : Int32) -> Int32 {
   lo + self.0.int(limit=hi - lo + 1)
 }
 

@@ -13,18 +13,18 @@ pub fn diff(Array[@rules.Expectation], BytesView) -> Diff
 // Types and methods
 pub struct Diff {
   lines : Array[DiffLine]
-  count_matched : Int
-  count_unmatched : Int
-  count_output_lines : Int
+  count_matched : Int32
+  count_unmatched : Int32
+  count_output_lines : Int32
 }
 pub fn Diff::debug_string(Self) -> String
 pub fn Diff::has_differences(Self) -> Bool
 pub fn Diff::new(Array[DiffLine]) -> Self
 
 pub enum DiffLine {
-  MatchedExpectation(index~ : Int, expectation~ : @rules.Expectation, lines~ : Array[(Int, Bytes)])
-  UnmatchedExpectation(index~ : Int, expectation~ : @rules.Expectation)
-  UnexpectedLines(lines~ : Array[(Int, Bytes)])
+  MatchedExpectation(index~ : Int32, expectation~ : @rules.Expectation, lines~ : Array[(Int32, Bytes)])
+  UnmatchedExpectation(index~ : Int32, expectation~ : @rules.Expectation)
+  UnexpectedLines(lines~ : Array[(Int32, Bytes)])
 }
 
 // Type aliases

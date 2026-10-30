@@ -14,7 +14,7 @@ pub fn assure_newline(BytesView) -> Bytes
 
 pub fn assure_newline_str(String) -> String
 
-pub fn compare_utf8(String, String) -> Int
+pub fn compare_utf8(String, String) -> Int32
 
 pub fn ends_in_newline(BytesView) -> Bool
 
@@ -42,7 +42,7 @@ pub fn trim_newlines_str(String) -> String
 
 pub fn unescape_tabs(String) -> String
 
-pub fn utf8_segments(BytesView) -> Array[(Int, String, Int)]
+pub fn utf8_segments(BytesView) -> Array[(Int32, String, Int32)]
 
 pub fn utf8_string(BytesView) -> String?
 

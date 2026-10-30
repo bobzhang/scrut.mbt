@@ -1,4 +1,4 @@
-///|
+----
 import {
   "moonbitlang/async@0.22.4",
   "moonbitlang/async@0.22.4/fs",
@@ -6,6 +6,7 @@ import {
   "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/random",
 }
+----
 
 ///|
 /// Oracle for argv/: how bash splits random command strings into words.
@@ -139,7 +140,7 @@ fn mbt(s : String) -> String {
 struct Rng(@random.Rand)
 
 ///|
-fn Rng::new(seed : Int) -> Rng {
+fn Rng::new(seed : Int32) -> Rng {
   let bytes = Array::make(32, b'\x00')
   for i in 0..<4 {
     bytes[i] = ((seed >> (8 * i)) & 0xFF).to_byte()
@@ -149,7 +150,7 @@ fn Rng::new(seed : Int) -> Rng {
 
 ///|
 /// A random integer in [lo, hi].
-fn Rng::randint(self : Rng, lo : Int, hi : Int) -> Int {
+fn Rng::randint(self : Rng, lo : Int32, hi : Int32) -> Int32 {
   lo + self.0.int(limit=hi - lo + 1)
 }
 

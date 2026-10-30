@@ -7,7 +7,7 @@ import {
 }
 
 // Values
-pub let cram_indention : Int
+pub let cram_indention : Int32
 
 pub fn cram_testcases(Array[@render.Outcome]) -> String raise GenerateError
 

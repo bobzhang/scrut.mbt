@@ -9,9 +9,9 @@ import {
 }
 
 // Values
-pub let default_multiline_matched_lines : Int
+pub let default_multiline_matched_lines : Int32
 
-pub let default_surrounding_lines : Int
+pub let default_surrounding_lines : Int32
 
 pub fn json_to_yaml(@text.JsonValue) -> String
 
@@ -63,12 +63,12 @@ pub fn Painter::yellow_bold(Self, String) -> String
 
 pub(all) struct PrettyRenderer {
   color : Bool
-  max_surrounding_lines : Int
+  max_surrounding_lines : Int32
   absolute_line_numbers : Bool
   summarize : Bool
-  max_multiline_matched_lines : Int
+  max_multiline_matched_lines : Int32
 }
-pub fn PrettyRenderer::new(color? : Bool, max_surrounding_lines? : Int, absolute_line_numbers? : Bool, summarize? : Bool, max_multiline_matched_lines? : Int) -> Self
+pub fn PrettyRenderer::new(color? : Bool, max_surrounding_lines? : Int32, absolute_line_numbers? : Bool, summarize? : Bool, max_multiline_matched_lines? : Int32) -> Self
 pub fn PrettyRenderer::render(Self, Array[Outcome]) -> String
 
 // Type aliases

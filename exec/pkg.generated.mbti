@@ -45,19 +45,19 @@ pub(all) struct Context {
 
 pub(all) enum ExecutionResult {
   Completed(Array[Output])
-  SkippedAt(Int)
-  TimedOut(index~ : Int, total~ : Bool, outputs~ : Array[Output])
-  FailedAt(index~ : Int, outputs~ : Array[Output])
+  SkippedAt(Int32)
+  TimedOut(index~ : Int32, total~ : Bool, outputs~ : Array[Output])
+  FailedAt(index~ : Int32, outputs~ : Array[Output])
 }
 
 pub(all) enum ExitStatus {
-  Code(Int)
+  Code(Int32)
   Timeout(@config.Duration)
   Skipped
   Detached
   Unknown
 } derive(Eq, @debug.Debug)
-pub fn ExitStatus::as_code(Self) -> Int
+pub fn ExitStatus::as_code(Self) -> Int32
 pub fn ExitStatus::to_string(Self) -> String
 
 pub(all) struct Output {
@@ -73,7 +73,7 @@ pub fn Output::to_error_string(Self, @text.Escaper) -> String
 pub(all) enum TestCaseError {
   MalformedOutput(@diff.Diff)
   JsonSchemaFailed(String, Array[String])
-  InvalidExitCode(actual~ : Int, expected~ : Int)
+  InvalidExitCode(actual~ : Int32, expected~ : Int32)
   InternalError(String)
   Timeout
   Skipped

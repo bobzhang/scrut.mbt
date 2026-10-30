@@ -11,7 +11,7 @@ import {
 // Values
 pub fn extract_code_block_start(String) -> (String, String, String)?
 
-pub fn extract_exit_code(String) -> Int?
+pub fn extract_exit_code(String) -> Int32?
 
 pub fn extract_title(String) -> String?
 
@@ -42,8 +42,8 @@ pub(all) struct Document {
 pub(all) enum MarkdownToken {
   Line(String)
   DocumentConfigLines(Array[String])
-  TestCodeBlock(language~ : String, config_lines~ : Array[String], comment_lines~ : Array[String], code_lines~ : Array[(Int, String)])
-  VerbatimCodeBlock(starting_line~ : Int, language~ : String, lines~ : Array[String])
+  TestCodeBlock(language~ : String, config_lines~ : Array[String], comment_lines~ : Array[String], code_lines~ : Array[(Int32, String)])
+  VerbatimCodeBlock(starting_line~ : Int32, language~ : String, lines~ : Array[String])
 }
 
 pub(all) enum ParserType {
@@ -56,12 +56,12 @@ pub(all) struct TestCase {
   title : String
   shell_expression : String
   body : ValidationBody
-  exit_code : Int?
-  line_number : Int
+  exit_code : Int32?
+  line_number : Int32
   config : @config.TestCaseConfig
 }
 pub fn TestCase::expectations(Self) -> Array[@rules.Expectation]
-pub fn TestCase::shell_expression_lines(Self) -> Int
+pub fn TestCase::shell_expression_lines(Self) -> Int32
 pub fn TestCase::to_json(Self) -> @text.JsonValue
 
 pub(all) enum ValidationBody {

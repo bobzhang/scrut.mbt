@@ -10,6 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        moonbit: [pre-release]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5

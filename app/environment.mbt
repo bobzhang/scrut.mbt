@@ -162,7 +162,7 @@ async fn[T] with_test_environment(
   f : async (TestEnvironment) -> T,
 ) -> T {
   let env = TestEnvironment::new(work_directory, keep_temporary_directories)
-  defer env.cleanup()
+  defer @async.protect_from_cancel(() => env.cleanup())
   f(env)
 }
 

@@ -35,7 +35,7 @@ test "expectations match upstream" {
     let maker = @rules.ExpectationMaker::new(cram_compat=cram)
     let got = try maker.parse(line) catch {
       e => {
-        if want != "ERR" && e.to_string().contains("not supported") {
+        if want != "ERR" && Show::to_string(e).contains("not supported") {
           regex_unsupported += 1
           continue
         }

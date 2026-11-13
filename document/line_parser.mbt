@@ -94,10 +94,10 @@ pub fn extract_exit_code(line : String) -> Int32? {
 ///|
 fn parse_config_yaml(text : String) -> @config.TestCaseConfig raise ParseError {
   let yaml = @config.parse_yaml(text) catch {
-    e => raise ParseError(e.to_string())
+    e => raise ParseError(Show::to_string(e))
   }
   @config.test_case_config_from_yaml(yaml) catch {
-    e => raise ParseError(e.to_string())
+    e => raise ParseError(Show::to_string(e))
   }
 }
 

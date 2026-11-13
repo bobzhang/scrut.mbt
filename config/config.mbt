@@ -2,9 +2,10 @@
 
 ///|
 /// A configuration error.
+#derive(Debug)
 pub(all) suberror ConfigError {
   ConfigError(String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for ConfigError with fn output(self, logger) {
@@ -13,11 +14,12 @@ pub impl Show for ConfigError with fn output(self, logger) {
 }
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum OutputStream {
   Stdout
   Stderr
   Combined
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn OutputStream::name(self : OutputStream) -> String {
@@ -29,18 +31,20 @@ pub fn OutputStream::name(self : OutputStream) -> String {
 }
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum TestMode {
   Output
   JsonSchema
-} derive(Eq, Debug)
+}
 
 ///|
 /// The signal sent to detached processes at the end of a document.
+#derive(Eq, Debug)
 pub(all) enum KillSignal {
   Disabled
   /// A signal by its short lowercase name (`term`, `int`, ...).
   Enabled(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Signal short names and their numbers common to Linux and macOS.
@@ -125,13 +129,15 @@ pub fn KillSignal::to_string(self : KillSignal) -> String {
 ///|
 /// Wait before running a test case: a duration, optionally ending early once
 /// a path exists.
+#derive(Eq, Debug)
 pub(all) struct Wait {
   timeout : Duration
   path : String?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Per test case configuration. `None` means "not set" (defaults apply).
+#derive(Eq, Debug)
 pub(all) struct TestCaseConfig {
   detached : Bool?
   detached_kill_signal : KillSignal?
@@ -150,7 +156,7 @@ pub(all) struct TestCaseConfig {
   stdin : String?
   /// scrut.mbt: working directory, relative to the document's.
   cwd : String?
-} derive(Eq, Debug)
+}
 
 ///|
 pub let default_skip_document_code : Int32 = 80
@@ -320,13 +326,14 @@ pub fn TestCaseConfig::is_json_schema(self : TestCaseConfig) -> Bool {
 
 ///|
 /// Per document configuration.
+#derive(Eq, Debug)
 pub(all) struct DocumentConfig {
   append : Array[String]
   defaults : TestCaseConfig
   prepend : Array[String]
   shell : String?
   total_timeout : Duration?
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn DocumentConfig::empty() -> DocumentConfig {

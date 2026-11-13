@@ -75,6 +75,7 @@ fn GlobalArgs::output_escaping(
 }
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum RendererKind {
   Auto
   Pretty
@@ -82,7 +83,7 @@ pub(all) enum RendererKind {
   Json
   Yaml
   Junit
-} derive(Eq, Debug)
+}
 
 ///|
 pub(all) struct TestArgs {

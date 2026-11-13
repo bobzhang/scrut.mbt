@@ -28,9 +28,10 @@ pub fn rust_lines(String) -> Array[String]
 pub fn rust_trim(String) -> String
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror ParseError {
   ParseError(String)
-} derive(@debug.Debug)
+}
 pub impl Show for ParseError
 
 // Types and methods
@@ -46,10 +47,11 @@ pub(all) enum MarkdownToken {
   VerbatimCodeBlock(starting_line~ : Int32, language~ : String, lines~ : Array[String])
 }
 
+#derive(Eq, @debug.Debug)
 pub(all) enum ParserType {
   Markdown
   Cram
-} derive(Eq, @debug.Debug)
+}
 pub fn ParserType::to_string(Self) -> String
 
 pub(all) struct TestCase {

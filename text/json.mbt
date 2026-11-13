@@ -2,6 +2,7 @@
 // serializers (keys in the given order).
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum JsonValue {
   JNull
   JBool(Bool)
@@ -10,7 +11,7 @@ pub(all) enum JsonValue {
   JString(String)
   JArray(Array[JsonValue])
   JObject(Array[(String, JsonValue)])
-} derive(Eq, Debug)
+}
 
 ///|
 /// A JSON string literal (serde_json's escaping).

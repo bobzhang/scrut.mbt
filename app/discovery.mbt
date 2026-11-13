@@ -3,9 +3,10 @@
 ///|
 /// An error with its context chain, outermost first (rendered like
 /// `anyhow`'s debug format).
+#derive(Debug)
 pub(all) suberror AppError {
   AppError(Array[String])
-} derive(Debug)
+}
 
 ///|
 pub impl Show for AppError with fn output(self, logger) {

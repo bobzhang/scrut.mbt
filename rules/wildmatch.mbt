@@ -3,9 +3,10 @@
 
 ///|
 /// A compiled glob pattern: runs of `*` collapsed into one.
+#derive(Eq, Debug)
 pub struct WildMatch {
   priv pattern : Array[Char]
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn WildMatch::new(pattern : String) -> WildMatch {

@@ -11,16 +11,18 @@ pub fn parse_command(String, env? : Array[(String, String)]) -> Command raise Ar
 pub fn tokenize(String, env? : Array[(String, String)]) -> Array[String] raise ArgvError
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror ArgvError {
   ArgvError(String)
-} derive(@debug.Debug)
+}
 pub impl Show for ArgvError
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) struct Command {
   env : Array[(String, String)]
   argv : Array[String]
-} derive(Eq, @debug.Debug)
+}
 
 // Type aliases
 

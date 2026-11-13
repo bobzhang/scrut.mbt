@@ -47,21 +47,24 @@ pub fn utf8_segments(BytesView) -> Array[(Int32, String, Int32)]
 pub fn utf8_string(BytesView) -> String?
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror EscapeError {
   EscapeError(String)
-} derive(@debug.Debug)
+}
 pub impl Show for EscapeError
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) enum Escaper {
   Ascii
   Unicode
-} derive(Eq, @debug.Debug)
+}
 pub fn Escaper::escaped_expectation(Self, BytesView) -> String
 pub fn Escaper::escaped_printable(Self, BytesView) -> String
 pub fn Escaper::forced_expectation(Self, BytesView) -> String
 pub fn Escaper::has_unprintable(Self, BytesView) -> Bool
 
+#derive(Eq, @debug.Debug)
 pub(all) enum JsonValue {
   JNull
   JBool(Bool)
@@ -69,7 +72,7 @@ pub(all) enum JsonValue {
   JString(String)
   JArray(Array[JsonValue])
   JObject(Array[(String, JsonValue)])
-} derive(Eq, @debug.Debug)
+}
 pub fn JsonValue::sorted(Self) -> Self
 pub fn JsonValue::to_string(Self) -> String
 pub fn JsonValue::to_string_pretty(Self) -> String

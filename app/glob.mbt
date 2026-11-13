@@ -6,9 +6,10 @@
 // escapes (on Windows it is a separator).
 
 ///|
+#derive(Debug)
 pub(all) suberror GlobError {
   GlobError(String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for GlobError with fn output(self, logger) {
@@ -17,6 +18,7 @@ pub impl Show for GlobError with fn output(self, logger) {
 }
 
 ///|
+#derive(Eq)
 priv enum Token {
   Literal(Char)
   AnyChar
@@ -26,7 +28,7 @@ priv enum Token {
   RecursiveZeroOrMore
   Class(negated~ : Bool, ranges~ : Array[(Char, Char)])
   Alternates(Array[Array[Token]])
-} derive(Eq)
+}
 
 ///|
 pub struct Glob {

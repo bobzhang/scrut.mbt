@@ -18,9 +18,10 @@ pub fn fixup_regex(String) -> String
 pub fn translate_rust_regex(String, start_anchor? : Bool, end_anchor? : Bool) -> String raise RuleError
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror RuleError {
   RuleError(String)
-} derive(@debug.Debug)
+}
 pub impl Show for RuleError
 
 // Types and methods
@@ -68,9 +69,10 @@ pub fn Rule::unmake(Self) -> (String, Bytes)
 pub impl Eq for Rule
 pub impl Show for Rule
 
+#derive(Eq, @debug.Debug)
 pub struct WildMatch {
   // private fields
-} derive(Eq, @debug.Debug)
+}
 pub fn WildMatch::matches(Self, String) -> Bool
 pub fn WildMatch::new(String) -> Self
 pub fn WildMatch::to_string(Self) -> String

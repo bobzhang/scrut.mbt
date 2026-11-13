@@ -46,14 +46,16 @@ pub let validation_failed_exit_code : Int32
 pub fn with_extension(String, String) -> String
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror AppError {
   AppError(Array[String])
-} derive(@debug.Debug)
+}
 pub impl Show for AppError
 
+#derive(@debug.Debug)
 pub(all) suberror GlobError {
   GlobError(String)
-} derive(@debug.Debug)
+}
 pub impl Show for GlobError
 
 // Types and methods
@@ -102,6 +104,7 @@ pub(all) struct ParsedTestFile {
   config : @config.DocumentConfig
 }
 
+#derive(Eq, @debug.Debug)
 pub(all) enum RendererKind {
   Auto
   Pretty
@@ -109,7 +112,7 @@ pub(all) enum RendererKind {
   Json
   Yaml
   Junit
-} derive(Eq, @debug.Debug)
+}
 
 pub(all) struct Terminal {
   write_out : async (String) -> Unit

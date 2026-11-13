@@ -5,9 +5,10 @@
 
 ///|
 /// A command that cannot be run without a shell.
+#derive(Debug)
 pub(all) suberror ArgvError {
   ArgvError(String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for ArgvError with fn output(self, logger) {
@@ -17,10 +18,11 @@ pub impl Show for ArgvError with fn output(self, logger) {
 
 ///|
 /// A program invocation: leading `NAME=value` assignments and the words.
+#derive(Eq, Debug)
 pub(all) struct Command {
   env : Array[(String, String)]
   argv : Array[String]
-} derive(Eq, Debug)
+}
 
 ///|
 /// A part of a word: literal text or a variable reference.

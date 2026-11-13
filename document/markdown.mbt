@@ -148,13 +148,13 @@ pub(all) enum MarkdownToken {
     language~ : String,
     config_lines~ : Array[String],
     comment_lines~ : Array[String],
-    code_lines~ : Array[(Int32, String)]
+    code_lines~ : Array[(Int32, String)],
   )
   /// Any other code block, with all its lines (backtick lines included).
   VerbatimCodeBlock(
     starting_line~ : Int32,
     language~ : String,
-    lines~ : Array[String]
+    lines~ : Array[String],
   )
 }
 

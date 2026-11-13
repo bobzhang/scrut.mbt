@@ -30,9 +30,10 @@ pub async fn run_testcase(@document.TestCase, Context) -> Output
 pub fn validate(@document.TestCase, Output) -> Result[Unit, TestCaseError]
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror ExecutionError {
   ExecutionError(String)
-} derive(@debug.Debug)
+}
 pub impl Show for ExecutionError
 
 // Types and methods
@@ -50,23 +51,25 @@ pub(all) enum ExecutionResult {
   FailedAt(index~ : Int32, outputs~ : Array[Output])
 }
 
+#derive(Eq, @debug.Debug)
 pub(all) enum ExitStatus {
   Code(Int32)
   Timeout(@config.Duration)
   Skipped
   Detached
   Unknown
-} derive(Eq, @debug.Debug)
+}
 pub fn ExitStatus::as_code(Self) -> Int32
 pub fn ExitStatus::to_string(Self) -> String
 
+#derive(@debug.Debug)
 pub(all) struct Output {
   stdout : Bytes
   stderr : Bytes
   exit_code : ExitStatus
   env : Array[(String, String)]
   duration_ms : Int64?
-} derive(@debug.Debug)
+}
 pub fn Output::new(ExitStatus) -> Self
 pub fn Output::to_error_string(Self, @text.Escaper) -> String
 

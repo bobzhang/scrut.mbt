@@ -4,9 +4,10 @@
 
 ///|
 /// An invalid expectation (unknown rule, bad escape or regex).
+#derive(Debug)
 pub(all) suberror RuleError {
   RuleError(String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for RuleError with fn output(self, logger) {

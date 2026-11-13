@@ -66,9 +66,10 @@ pub(all) struct Document {
 
 ///|
 /// A document that cannot be parsed.
+#derive(Debug)
 pub(all) suberror ParseError {
   ParseError(String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for ParseError with fn output(self, logger) {
@@ -103,10 +104,11 @@ pub fn rust_lines(text : String) -> Array[String] {
 
 ///|
 /// The format a test document is written in.
+#derive(Eq, Debug)
 pub(all) enum ParserType {
   Markdown
   Cram
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn ParserType::to_string(self : ParserType) -> String {

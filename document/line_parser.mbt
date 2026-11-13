@@ -2,13 +2,14 @@
 // (upstream src/parsers/line_parser.rs).
 
 ///|
+#derive(Eq)
 priv enum Position {
   Start
   Config
   PreCommand
   Command
   Body
-} derive(Eq)
+}
 
 ///|
 fn Position::rank(self : Position) -> Int32 {

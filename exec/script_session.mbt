@@ -8,9 +8,10 @@
 
 ///|
 /// Execution could not start or its results could not be assigned.
+#derive(Debug)
 pub(all) suberror ExecutionError {
   ExecutionError(String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for ExecutionError with fn output(self, logger) {

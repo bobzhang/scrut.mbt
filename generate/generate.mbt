@@ -2,9 +2,10 @@
 // documents and new documents (upstream src/generators/).
 
 ///|
+#derive(Debug)
 pub(all) suberror GenerateError {
   GenerateError(Array[String])
-} derive(Debug)
+}
 
 ///|
 fn message(msg : String) -> GenerateError {

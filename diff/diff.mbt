@@ -7,7 +7,7 @@ pub enum DiffLine {
   MatchedExpectation(
     index~ : Int32,
     expectation~ : @rules.Expectation,
-    lines~ : Array[(Int32, Bytes)]
+    lines~ : Array[(Int32, Bytes)],
   )
   /// A (non-optional) expectation that was not matched.
   UnmatchedExpectation(index~ : Int32, expectation~ : @rules.Expectation)

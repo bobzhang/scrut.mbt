@@ -28,9 +28,10 @@ pub fn render_yaml(Array[Outcome]) -> String
 pub fn strip_colors(String) -> String
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror RenderError {
   RenderError(String)
-} derive(@debug.Debug)
+}
 pub impl Show for RenderError
 
 // Types and methods

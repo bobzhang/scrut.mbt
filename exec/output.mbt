@@ -1,13 +1,14 @@
 // Execution results (upstream src/output.rs).
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum ExitStatus {
   Code(Int32)
   Timeout(@config.Duration)
   Skipped
   Detached
   Unknown
-} derive(Eq, Debug)
+}
 
 ///|
 pub fn ExitStatus::to_string(self : ExitStatus) -> String {
@@ -33,6 +34,7 @@ pub fn ExitStatus::as_code(self : ExitStatus) -> Int32 {
 
 ///|
 /// The result of running one test case.
+#derive(Debug)
 pub(all) struct Output {
   stdout : Bytes
   stderr : Bytes
@@ -40,7 +42,7 @@ pub(all) struct Output {
   /// The environment the program ran with (for interpolation).
   env : Array[(String, String)]
   duration_ms : Int64?
-} derive(Debug)
+}
 
 ///|
 pub fn Output::new(exit_code : ExitStatus) -> Output {

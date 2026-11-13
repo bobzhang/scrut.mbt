@@ -3,10 +3,11 @@
 
 ///|
 /// A non-negative duration.
+#derive(Eq, Compare, Debug)
 pub struct Duration {
   secs : UInt64
   nanos : Int32
-} derive(Eq, Compare, Debug)
+}
 
 ///|
 pub fn Duration::zero() -> Duration {
@@ -39,9 +40,10 @@ pub fn Duration::as_millis(self : Duration) -> Int64 {
 
 ///|
 /// A duration parsing error (humantime's messages).
+#derive(Debug)
 pub(all) suberror DurationError {
   DurationError(String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for DurationError with fn output(self, logger) {

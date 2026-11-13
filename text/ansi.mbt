@@ -4,6 +4,7 @@
 // other control character are dropped).
 
 ///|
+#derive(Eq)
 priv enum VteState {
   Ground
   Escape
@@ -19,7 +20,7 @@ priv enum VteState {
   DcsPassthrough
   OscString
   SosPmApcString
-} derive(Eq)
+}
 
 ///|
 /// The result of validating UTF-8 like Rust's `str::from_utf8`: the length of

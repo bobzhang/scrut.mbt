@@ -3,9 +3,10 @@
 
 ///|
 /// An error in an escaped expression.
+#derive(Debug)
 pub(all) suberror EscapeError {
   EscapeError(String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for EscapeError with fn output(self, logger) {

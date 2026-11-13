@@ -722,10 +722,11 @@ struct Oracle {
 ///|
 /// The result of `test` (exit code and normalized stdout) or `update` (exit
 /// code, stdout, stderr and the files after the update, sorted by name).
+#derive(Eq)
 enum Outcome {
   Test(Int32, String)
   Update(Int32, Bytes, Bytes, Array[(String, Bytes)])
-} derive(Eq)
+}
 
 ///|
 fn Outcome::code(self : Outcome) -> Int32 {

@@ -3,13 +3,14 @@
 // read back as null, a bool, an integer or a float are single-quoted.
 
 ///|
+#derive(Eq)
 priv enum ScalarStyle {
   Any
   Plain
   SingleQuoted
   DoubleQuoted
   Literal
-} derive(Eq)
+}
 
 ///|
 fn infer_scalar_style(value : String) -> ScalarStyle {

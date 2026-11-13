@@ -3,12 +3,13 @@
 
 ///|
 /// How non-printable output is escaped.
+#derive(Eq, Debug)
 pub(all) enum Escaper {
   /// All non-ASCII and all non-printable ASCII characters are escaped.
   Ascii
   /// All non-printable Unicode characters are escaped.
   Unicode
-} derive(Eq, Debug)
+}
 
 ///|
 /// Unicode general category C (control, format, private use), per the

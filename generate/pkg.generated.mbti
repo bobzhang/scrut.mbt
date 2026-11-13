@@ -20,9 +20,10 @@ pub fn update_cram(String, Array[@render.Outcome]) -> String raise GenerateError
 pub fn update_markdown(String, Array[@render.Outcome], Array[String]) -> String raise GenerateError
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror GenerateError {
   GenerateError(Array[String])
-} derive(@debug.Debug)
+}
 
 // Types and methods
 

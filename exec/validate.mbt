@@ -137,7 +137,7 @@ pub fn validate(
         try
           expectations.map(e => interpolate_expectation(e, output.env))
         catch {
-          e => return Err(InternalError(e.to_string()))
+          e => return Err(InternalError(Show::to_string(e)))
         } noraise {
           es => es
         }

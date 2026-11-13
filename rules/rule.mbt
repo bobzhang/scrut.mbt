@@ -125,7 +125,7 @@ pub fn Rule::make(
         expression
       }
       let bytes = @text.apply_escaped_filter_bytes(expression) catch {
-        e => raise RuleError(e.to_string())
+        e => raise RuleError(Show::to_string(e))
       }
       Escaped(expression, bytes)
     }
@@ -133,7 +133,7 @@ pub fn Rule::make(
       let expression = match @text.expression_as_escaped(expression) {
         Some(e) =>
           @text.apply_escaped_filter_utf8(e) catch {
-            e => raise RuleError(e.to_string())
+            e => raise RuleError(Show::to_string(e))
           }
         None => expression
       }

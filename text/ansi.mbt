@@ -99,7 +99,7 @@ fn utf8_validate(bytes : BytesView) -> (Int32, Int32?)? {
 ///|
 /// Strip ANSI escape sequences from terminal output.
 pub fn strip_ansi(data : BytesView) -> Bytes {
-  let out = Buffer(size_hint=data.length())
+  let out = Buffer(capacity=data.length())
   let print = (c : Char) => out.write_bytes(to_bytes(c.to_string()))
   let execute = (b : Int32) => if b == 0x0A { out.write_byte(b'\n') }
   let mut state = Ground

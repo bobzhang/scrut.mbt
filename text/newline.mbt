@@ -22,7 +22,7 @@ pub fn assure_newline(data : BytesView) -> Bytes {
   if ends_in_newline(data) {
     data.to_owned()
   } else {
-    let buf = Buffer(size_hint=data.length() + 1)
+    let buf = Buffer(capacity=data.length() + 1)
     buf.write_bytesview(data)
     buf.write_byte(b'\n')
     buf.to_bytes()
@@ -70,7 +70,7 @@ pub fn split_at_newline(text : BytesView) -> Array[BytesView] {
 ///|
 /// Replace every CRLF with LF.
 pub fn replace_crlf(data : BytesView) -> Bytes {
-  let buf = Buffer(size_hint=data.length())
+  let buf = Buffer(capacity=data.length())
   let n = data.length()
   for i in 0..<n {
     if data[i] == b'\r' && i + 1 < n && data[i + 1] == b'\n' {

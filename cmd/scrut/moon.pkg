@@ -5,7 +5,6 @@ import {
   "bobzhang/scrut/text",
   "bobzhang/scrut/document",
   "moonbitlang/core/argparse",
-  "moonbitlang/async",
   "moonbitlang/async/stdio",
   "moonbitlang/x/sys",
   "moonbitlang/core/env",

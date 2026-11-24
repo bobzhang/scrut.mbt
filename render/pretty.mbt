@@ -344,8 +344,8 @@ fn PrettyRenderer::render_malformed_output(
             line
           } else {
             let buf = Buffer()
-            buf.write_bytes(line)
-            buf.write_bytes(b" (no-eol)")
+            buf.write_bytesview(line)
+            buf.write_bytesview(b" (no-eol)")
             buf.to_bytes()
           }
           let line = self.highlight_trailing_spaces(

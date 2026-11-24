@@ -166,7 +166,7 @@ async fn read_pipe(pipe : &@io.Reader, into : Buffer) -> Unit noraise {
   while true {
     let chunk = pipe.read_some() catch { _ => break }
     match chunk {
-      Some(bytes) => into.write_bytes(bytes)
+      Some(bytes) => into.write_bytesview(bytes)
       None => break
     }
   }

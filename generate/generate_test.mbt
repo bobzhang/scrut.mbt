@@ -18,7 +18,7 @@ fn output_bytes(codes : Array[Int32]) -> Bytes {
   let buf = Buffer()
   let n = pieces.length()
   for code in codes {
-    buf.write_bytes(pieces[(code % n + n) % n])
+    buf.write_bytesview(pieces[(code % n + n) % n])
   }
   buf.to_bytes()
 }

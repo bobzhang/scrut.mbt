@@ -335,7 +335,7 @@ pub fn render_junit(
     let taken : Set[String] = Set([])
     for case in suite.testcases {
       if !taken.contains(case.name) {
-        taken.add(case.name)
+        taken.insert(case.name)
         continue
       }
       let mut counter = 2
@@ -343,7 +343,7 @@ pub fn render_junit(
         counter += 1
       }
       case.name = "\{case.name} #\{counter}"
-      taken.add(case.name)
+      taken.insert(case.name)
     }
   }
   let w = XmlWriter::new()

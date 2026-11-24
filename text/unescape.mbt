@@ -119,7 +119,7 @@ fn resolve_escape_sequences_to_bytes(
     let c = chars[i]
     i += 1
     if c != '\\' {
-      out.write_bytes(to_bytes(c.to_string()))
+      out.write_bytesview(to_bytes(c.to_string()))
       continue
     }
     if i >= chars.length() {

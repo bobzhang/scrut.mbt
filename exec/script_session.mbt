@@ -105,9 +105,9 @@ fn script_output(parts : Array[Bytes]) -> Bytes {
   let buf = Buffer()
   for i, line in lines {
     if i > 0 {
-      buf.write_bytes(b"\n")
+      buf.write_bytesview(b"\n")
     }
-    buf.write_bytes(line)
+    buf.write_bytesview(line)
   }
   buf.to_bytes()
 }

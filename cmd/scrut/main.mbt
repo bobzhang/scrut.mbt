@@ -436,7 +436,7 @@ async fn write_stderr(text : String) -> Unit {
 }
 
 ///|
-async fn main {
+async fn main_async() -> Unit {
   let env = @env.get_env_vars()
   let argv = @env.args()
   let matches = root_command().parse(argv=argv[1:], env~)
@@ -474,4 +474,9 @@ async fn main {
     }
   }
   @sys.exit(code)
+}
+
+///|
+fn main {
+  @async.run_async_main(main_async)
 }

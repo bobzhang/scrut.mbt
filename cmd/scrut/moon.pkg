@@ -1,4 +1,5 @@
 import {
+  "moonbitlang/async",
   "bobzhang/scrut" @lib,
   "bobzhang/scrut/app",
   "bobzhang/scrut/render",

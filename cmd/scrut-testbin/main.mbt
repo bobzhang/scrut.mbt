@@ -125,7 +125,7 @@ async fn main {
   for i in 0..<=args.length() {
     if i == args.length() || args[i] == "+" {
       if run(args[start:i].to_owned()) is Some(code) {
-        @sys.exit(code)
+        @env.exit(code)
       }
       start = i + 1
     }

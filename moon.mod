@@ -13,9 +13,9 @@ keywords = [ "cli", "testing", "cram", "snapshot" ]
 description = "CLI testing in Markdown and Cram files (port of facebookincubator/scrut), the engine for `moon cram`"
 
 import {
-  "moonbitlang/async@0.22.4",
-  "moonbitlang/x@0.5.5",
-  "moonbit-community/yaml@0.0.8",
+  "moonbitlang/async@0.22.10",
+  "moonbitlang/x@0.5.9",
+  "moonbit-community/yaml@0.0.10",
 }
 
 preferred_target = "native"

@@ -473,7 +473,7 @@ async fn main_async() -> Unit {
       1
     }
   }
-  @sys.exit(code)
+  @env.exit(code)
 }
 
 ///|
